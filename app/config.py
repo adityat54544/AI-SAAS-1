@@ -1,12 +1,20 @@
 """
 Application configuration using Pydantic Settings.
 Provides type-safe configuration management with environment variable support.
+Includes CI-safe fallbacks for testing and development.
 """
 
+import os
 from functools import lru_cache
 from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def _is_test_environment() -> bool:
+    """Check if running in test or CI environment."""
+    env = os.environ.get("ENVIRONMENT", "").lower()
+    return env in ("test", "ci", "testing") or os.environ.get("CI") == "true"
 
 
 class Settings(BaseSettings):
@@ -29,21 +37,21 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
 
-    # Supabase Configuration
-    supabase_url: str
-    supabase_service_role_key: str
-    supabase_anon_key: Optional[str] = None
+    # Supabase Configuration (with CI-safe fallbacks)
+    supabase_url: str = "https://test-project.supabase.co" if _is_test_environment() else ""
+    supabase_service_role_key: str = "test-service-role-key" if _is_test_environment() else ""
+    supabase_anon_key: Optional[str] = "test-anon-key" if _is_test_environment() else None
 
-    # GitHub OAuth Configuration
-    github_client_id: str
-    github_client_secret: str
+    # GitHub OAuth Configuration (with CI-safe fallbacks)
+    github_client_id: str = "test-github-client-id" if _is_test_environment() else ""
+    github_client_secret: str = "test-github-client-secret" if _is_test_environment() else ""
     github_redirect_uri: str = "http://localhost:8000/auth/github/callback"
 
     # GitHub Webhook Configuration
-    github_webhook_secret: Optional[str] = None
+    github_webhook_secret: Optional[str] = "test-webhook-secret" if _is_test_environment() else None
 
-    # AI Configuration
-    gemini_api_key: Optional[str] = None
+    # AI Configuration (with CI-safe fallbacks)
+    gemini_api_key: Optional[str] = "test-gemini-api-key" if _is_test_environment() else None
     ai_provider: str = "gemini"
     ai_model: str = "gemini-1.5-flash"
 
@@ -57,12 +65,12 @@ class Settings(BaseSettings):
     supabase_redis_url: Optional[str] = None
     supabase_redis_password: Optional[str] = None
 
-    # Encryption Configuration
-    encryption_key: Optional[str] = None  # AES-256 key (32 bytes, base64 encoded)
+    # Encryption Configuration (with CI-safe fallback)
+    encryption_key: Optional[str] = "dGVzdC1lbmNyeXB0aW9uLWtleS0zMi1ieXRlcy1sb25n" if _is_test_environment() else None  # AES-256 key (32 bytes, base64 encoded)
 
     # Security Settings
     cors_origins: str = "http://localhost:3000,http://localhost:8000"
-    jwt_secret: Optional[str] = None
+    jwt_secret: Optional[str] = "test-jwt-secret-for-ci-testing-only" if _is_test_environment() else None
     jwt_algorithm: str = "HS256"
     jwt_expiration_minutes: int = 60
 
@@ -126,6 +134,39 @@ class Settings(BaseSettings):
     def is_development(self) -> bool:
         """Check if running in development environment."""
         return self.environment.lower() == "development"
+    
+    def is_test(self) -> bool:
+        """Check if running in test environment."""
+        return self.environment.lower() in ("test", "ci", "testing")
+    
+    def has_supabase_config(self) -> bool:
+        """Check if real Supabase credentials are configured."""
+        return bool(
+            self.supabase_url and 
+            not self.supabase_url.startswith("https://test-project") and
+            self.supabase_service_role_key and 
+            not self.supabase_service_role_key.startswith("test-")
+        )
+    
+    def has_github_config(self) -> bool:
+        """Check if real GitHub OAuth credentials are configured."""
+        return bool(
+            self.github_client_id and 
+            not self.github_client_id.startswith("test-") and
+            self.github_client_secret and 
+            not self.github_client_secret.startswith("test-")
+        )
+    
+    def has_gemini_config(self) -> bool:
+        """Check if real Gemini API key is configured."""
+        return bool(
+            self.gemini_api_key is not None and 
+            not self.gemini_api_key.startswith("test-")
+        )
+    
+    def has_redis_config(self) -> bool:
+        """Check if Redis is available (either external or local)."""
+        return bool(self.effective_redis_url)
 
 
 @lru_cache
