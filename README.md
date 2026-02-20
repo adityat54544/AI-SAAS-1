@@ -239,15 +239,94 @@ cd frontend && npm run lint
 
 ### Railway (Backend)
 
-1. Connect repository to Railway
-2. Set environment variables
-3. Deploy with `railway up`
+See [deploy/railway.md](deploy/railway.md) for detailed Railway deployment instructions.
+
+**Quick Deploy:**
+
+```bash
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Login and create project
+railway login
+railway project create autodevops-ai-platform
+
+# Add Redis plugin
+railway add --plugin redis
+
+# Deploy services
+railway up --service autodevops-api
+railway up --service autodevops-worker
+railway up --service autodevops-cron
+```
 
 ### Vercel (Frontend)
 
 1. Connect repository to Vercel
 2. Set environment variables
 3. Deploy with `vercel --prod`
+
+## Backup & Restore
+
+### Automated Backups
+
+Backups run automatically daily at 2 AM UTC via the cron service.
+
+```bash
+# Manual backup
+./scripts/backup_pg.sh
+```
+
+### Restore from Backup
+
+```bash
+# 1. Download backup from S3
+aws s3 cp s3://your-bucket/backups/postgresql/autodevops_backup_YYYYMMDD_HHMMSS.sql.gz /tmp/
+
+# 2. Decompress
+gunzip /tmp/autodevops_backup_YYYYMMDD_HHMMSS.sql.gz
+
+# 3. Restore to database
+psql $DATABASE_URL < /tmp/autodevops_backup_YYYYMMDD_HHMMSS.sql
+
+# Or for Supabase:
+# Use Supabase Dashboard → Database → SQL Editor → Run backup SQL
+```
+
+### Key Rotation
+
+```bash
+# Rotate Supabase keys
+./scripts/rotate_supabase_key.sh
+
+# Rotate Gemini API key
+./scripts/rotate_gemini_key.sh
+```
+
+## Pre-commit Setup
+
+```bash
+# Install pre-commit
+pip install pre-commit
+
+# Install hooks
+pre-commit install
+
+# Run manually
+pre-commit run --all-files
+```
+
+## Post-Deployment Verification
+
+See [ops/verification.md](ops/verification.md) for the complete verification checklist.
+
+```bash
+# Quick health check
+curl https://your-api-domain/health
+
+# Check metrics
+curl https://your-api-domain/metrics
+```
 
 ## Contributing
 
