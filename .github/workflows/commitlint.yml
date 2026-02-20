@@ -1,0 +1,67 @@
+# Commitlint Workflow
+# Enforces semantic commit messages on all pull requests
+# Documentation: https://github.com/wagoid/commitlint-github-action
+
+name: Commitlint
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  commitlint:
+    name: Validate Commit Messages
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Validate PR commits
+        uses: wagoid/commitlint-github-action@v6
+        with:
+          configFile: .commitlintrc.json
+          failOnWarnings: false
+          helpURL: https://www.conventionalcommits.org/en/v1.0.0/
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Additional job to check PR title follows conventions
+  pr-title:
+    name: Validate PR Title
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Validate PR title format
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          
+          # Valid prefixes according to Conventional Commits
+          VALID_PREFIXES="feat|fix|docs|style|refactor|test|chore|ci|perf|revert|build"
+          
+          # Check if PR title matches conventional commit format
+          if [[ ! "$PR_TITLE" =~ ^($VALID_PREFIXES)(\(.+\))?!?:\ .+ ]]; then
+            echo "❌ Invalid PR title format: '$PR_TITLE'"
+            echo ""
+            echo "PR titles must follow Conventional Commits format:"
+            echo "  <type>(<scope>)!: <description>"
+            echo ""
+            echo "Valid types: feat, fix, docs, style, refactor, test, chore, ci, perf, revert, build"
+            echo "Scope is optional"
+            echo "! is optional for breaking changes"
+            echo ""
+            echo "Examples:"
+            echo "  feat: add user authentication"
+            echo "  fix(api): resolve timeout issue"
+            echo "  docs(readme): update installation steps"
+            echo "  chore!: breaking change - migrate to v2 API"
+            exit 1
+          fi
+          
+          echo "✅ PR title is valid: '$PR_TITLE'"

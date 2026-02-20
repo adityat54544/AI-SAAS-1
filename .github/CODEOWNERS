@@ -1,0 +1,81 @@
+# CODEOWNERS - AutoDevOps AI Platform
+# This file defines code ownership for pull request reviews.
+# Documentation: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# ==============================================================================
+# Default Owner - All repository content
+# ==============================================================================
+# The owner listed below is automatically requested for review on all PRs.
+# This establishes clear architectural ownership and ensures consistent review.
+
+* @adityat54544
+
+# ==============================================================================
+# Backend (Python/FastAPI)
+# ==============================================================================
+/app/ @adityat54544
+/app/ai/ @adityat54544
+/app/routers/ @adityat54544
+/app/services/ @adityat54544
+/app/middleware/ @adityat54544
+/app/webhooks/ @adityat54544
+/app/logs/ @adityat54544
+/requirements.txt @adityat54544
+/Dockerfile.api @adityat54544
+
+# ==============================================================================
+# Frontend (Next.js/TypeScript)
+# ==============================================================================
+/frontend/ @adityat54544
+/frontend/src/ @adityat54544
+
+# ==============================================================================
+# Workers (TypeScript/BullMQ)
+# ==============================================================================
+/workers/ @adityat54544
+/workers/src/ @adityat54544
+/Dockerfile.worker @adityat54544
+
+# ==============================================================================
+# Infrastructure & Deployment
+# ==============================================================================
+/infra/ @adityat54544
+/deploy/ @adityat54544
+/Dockerfile @adityat54544
+/Dockerfile.cron @adityat54544
+/docker-compose.yml @adityat54544
+
+# ==============================================================================
+# CI/CD & Automation
+# ==============================================================================
+/.github/ @adityat54544
+/.github/workflows/ @adityat54544
+/scripts/ @adityat54544
+
+# ==============================================================================
+# Database & Migrations
+# ==============================================================================
+/supabase/ @adityat54544
+/supabase/migrations/ @adityat54544
+
+# ==============================================================================
+# Documentation
+# ==============================================================================
+/docs/ @adityat54544
+/ops/ @adityat54544
+/security/ @adityat54544
+/repo/ @adityat54544
+/README.md @adityat54544
+/CHANGELOG.md @adityat54544
+
+# ==============================================================================
+# Testing
+# ==============================================================================
+/tests/ @adityat54544
+
+# ==============================================================================
+# Configuration
+# ==============================================================================
+/.pre-commit-config.yaml @adityat54544
+/.env.example @adityat54544
+/.gitignore @adityat54544

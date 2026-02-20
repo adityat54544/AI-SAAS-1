@@ -8,6 +8,28 @@
 [![Redis](https://img.shields.io/badge/Redis-BullMQ-DC382D?style=flat&logo=redis)](https://redis.io/)
 [![Gemini](https://img.shields.io/badge/Gemini-1.5_Flash-4285F4?style=flat&logo=google)](https://ai.google.dev/)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat)](LICENSE)
+[![Staff Engineer](https://img.shields.io/badge/Staff_Engineer-Repo_Structure-purple?style=flat)](docs/staff-repo-structure.md)
+
+---
+
+## Staff Engineer Repository Governance
+
+This repository follows **staff-engineer level governance practices** for internal-company systems. All code has defined ownership via CODEOWNERS, changes require pull request review, and the codebase maintains comprehensive documentation for operational excellence.
+
+**Owner:** [@adityat54544](https://github.com/adityat54544) (Aditya Tiwari, Founder & Lead Engineer)  
+**Governance:** [CONTRIBUTING.md](CONTRIBUTING.md) • [SECURITY.md](SECURITY.md) • [MAINTAINERS.md](MAINTAINERS.md)  
+**Architecture:** [staff-repo-structure.md](docs/staff-repo-structure.md) • [ADR-007](docs/adr/ADR-007-repository-structure.md)
+
+---
+
+## Table of Contents
+
+- [10-Second System Snapshot](#10-second-system-snapshot)
+- [System Architecture](#system-architecture)
+- [Security Model](#security-model)
+- [Quick Start](#quick-start)
+- [Deployment](#deployment)
+- [Documentation Index](#documentation-index)
 
 ---
 
@@ -584,14 +606,50 @@ flowchart LR
 
 ## Documentation Index
 
+### Architecture & Design
+
 | Document | Purpose |
 |----------|---------|
 | `docs/staff-overview.md` | Staff-engineer system narrative |
 | `docs/architecture.md` | Detailed architecture diagrams |
+| `docs/staff-repo-structure.md` | Staff-engineer repository structure guide |
+| `docs/engineering_principles.md` | Core engineering principles |
+| `docs/adr/ADR-007-repository-structure.md` | Repository governance decision |
+
+### Governance & Contributing
+
+| Document | Purpose |
+|----------|---------|
+| `CONTRIBUTING.md` | Contribution guidelines |
+| `SECURITY.md` | Security policy and disclosure |
+| `MAINTAINERS.md` | Maintainer responsibilities |
+| `RELEASE.md` | Release process and versioning |
+| `.github/CODEOWNERS` | Code ownership mapping |
+
+### Operations
+
+| Document | Purpose |
+|----------|---------|
 | `ops/runbook.md` | Operational procedures |
+| `ops/oncall_playbook.md` | Incident response playbooks |
 | `ops/verification.md` | Deployment verification |
+| `ops/alerts.md` | Alert configurations |
 | `deploy/railway.md` | Railway deployment guide |
+
+### Security
+
+| Document | Purpose |
+|----------|---------|
 | `security/report.md` | Security assessment |
+| `docs/final-improvements.md` | Improvement roadmap |
+
+### Repository Governance
+
+| Document | Purpose |
+|----------|---------|
+| `repo/governance_summary.md` | Governance implementation summary |
+| `docs/branch_strategy.md` | Branch workflow guidelines |
+| `repo/workflow_verification.md` | Workflow verification checklist |
 
 ---
 

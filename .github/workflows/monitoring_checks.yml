@@ -1,0 +1,183 @@
+# Monitoring Checks Workflow
+# Documents required metrics and verifies metrics endpoint is available
+# Does NOT enforce thresholds - only documents and verifies existence
+
+name: Monitoring Checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  metrics-documentation:
+    name: Document Required Metrics
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Document Required Metrics
+        run: |
+          echo "## Required Metrics for Observability" > metrics_report.md
+          echo "" >> metrics_report.md
+          echo "The following metrics MUST be exported by the application for proper observability:" >> metrics_report.md
+          echo "" >> metrics_report.md
+          
+          echo "### Core Metrics" >> metrics_report.md
+          echo "" >> metrics_report.md
+          
+          echo "| Metric Name | Type | Description | Purpose |" >> metrics_report.md
+          echo "|-------------|------|-------------|---------|" >> metrics_report.md
+          echo "| \`requests_total\` | Counter | Total number of HTTP requests | Traffic monitoring, rate calculation |" >> metrics_report.md
+          echo "| \`job_queue_length\` | Gauge | Current number of jobs in queue | Backlog monitoring, scaling trigger |" >> metrics_report.md
+          echo "| \`ai_calls_total\` | Counter | Total AI API calls made | Usage tracking, cost analysis |" >> metrics_report.md
+          echo "| \`ai_errors_total\` | Counter | Total AI API errors | Error rate monitoring, reliability |" >> metrics_report.md
+          echo "| \`db_connection_errors\` | Counter | Database connection failures | Infrastructure health |" >> metrics_report.md
+          
+          echo "" >> metrics_report.md
+          echo "### Prometheus Format Example" >> metrics_report.md
+          echo "" >> metrics_report.md
+          echo "\`\`\`" >> metrics_report.md
+          echo "# TYPE requests_total counter" >> metrics_report.md
+          echo "requests_total{method=\"GET\",endpoint=\"/api/health\",status=\"200\"} 1234" >> metrics_report.md
+          echo "" >> metrics_report.md
+          echo "# TYPE job_queue_length gauge" >> metrics_report.md
+          echo "job_queue_length{queue=\"analysis\"} 15" >> metrics_report.md
+          echo "job_queue_length{queue=\"sync\"} 3" >> metrics_report.md
+          echo "" >> metrics_report.md
+          echo "# TYPE ai_calls_total counter" >> metrics_report.md
+          echo "ai_calls_total{provider=\"gemini\",model=\"flash\"} 567" >> metrics_report.md
+          echo "" >> metrics_report.md
+          echo "# TYPE ai_errors_total counter" >> metrics_report.md
+          echo "ai_errors_total{provider=\"gemini\",error_type=\"rate_limit\"} 5" >> metrics_report.md
+          echo "" >> metrics_report.md
+          echo "# TYPE db_connection_errors counter" >> metrics_report.md
+          echo "db_connection_errors{database=\"supabase\"} 0" >> metrics_report.md
+          echo "\`\`\`" >> metrics_report.md
+          
+          echo "" >> metrics_report.md
+          echo "### Implementation Notes" >> metrics_report.md
+          echo "" >> metrics_report.md
+          echo "1. **No thresholds enforced yet** - Metrics are documented for baseline collection" >> metrics_report.md
+          echo "2. **Prometheus scraping** - Configure Prometheus to scrape \`/metrics\` endpoint" >> metrics_report.md
+          echo "3. **Grafana dashboards** - Use \`grafana/dashboard.json\` for visualization" >> metrics_report.md
+          echo "4. **Alerting** - Configure alerts after baseline data is collected" >> metrics_report.md
+          
+          cat metrics_report.md
+      
+      - name: Upload metrics documentation
+        uses: actions/upload-artifact@v4
+        with:
+          name: metrics-documentation
+          path: metrics_report.md
+
+  verify-metrics-endpoint:
+    name: Verify Metrics Endpoint Exists
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Check metrics endpoint implementation
+        run: |
+          echo "Checking for metrics endpoint implementation..."
+          
+          # Check if metrics endpoint is implemented in code
+          if grep -r "metrics" app/ --include="*.py" | grep -q "endpoint\|router\|app"; then
+            echo "✅ Metrics endpoint implementation found in codebase"
+          else
+            echo "⚠️ No explicit metrics endpoint found - may need implementation"
+          fi
+          
+          # Check if Prometheus client is in requirements
+          if grep -q "prometheus" requirements.txt 2>/dev/null; then
+            echo "✅ Prometheus client found in requirements.txt"
+          else
+            echo "⚠️ Prometheus client not found in requirements.txt"
+            echo "Consider adding: pip install prometheus-client"
+          fi
+          
+          # Check for existing Grafana dashboard
+          if [ -f "grafana/dashboard.json" ]; then
+            echo "✅ Grafana dashboard configuration exists"
+          else
+            echo "⚠️ No Grafana dashboard configuration found"
+          fi
+
+  grafana-dashboard-validation:
+    name: Validate Grafana Dashboard
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Validate Grafana dashboard JSON
+        run: |
+          if [ -f "grafana/dashboard.json" ]; then
+            echo "Validating Grafana dashboard..."
+            
+            # Check if JSON is valid
+            if python -c "import json; json.load(open('grafana/dashboard.json'))" 2>/dev/null; then
+              echo "✅ Grafana dashboard JSON is valid"
+            else
+              echo "❌ Grafana dashboard JSON is invalid"
+              exit 1
+            fi
+            
+            # Check for required panels
+            if grep -q "requests_total" grafana/dashboard.json; then
+              echo "✅ Dashboard includes requests_total metric"
+            fi
+            
+            if grep -q "job_queue" grafana/dashboard.json; then
+              echo "✅ Dashboard includes job queue metrics"
+            fi
+            
+            if grep -q "ai_" grafana/dashboard.json; then
+              echo "✅ Dashboard includes AI metrics"
+            fi
+          else
+            echo "⚠️ No Grafana dashboard to validate"
+          fi
+
+  summary:
+    name: Monitoring Summary
+    runs-on: ubuntu-latest
+    needs: [metrics-documentation, verify-metrics-endpoint, grafana-dashboard-validation]
+    if: always()
+    
+    steps:
+      - name: Generate Summary
+        run: |
+          echo "## Monitoring Checks Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Required Metrics (Document Only - No Thresholds)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Type | Purpose |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|------|---------|" >> $GITHUB_STEP_SUMMARY
+          echo "| \`requests_total\` | Counter | HTTP request tracking |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`job_queue_length\` | Gauge | Queue backlog monitoring |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`ai_calls_total\` | Counter | AI usage tracking |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`ai_errors_total\` | Counter | AI error tracking |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`db_connection_errors\` | Counter | Database health |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. Collect baseline data for 2-4 weeks" >> $GITHUB_STEP_SUMMARY
+          echo "2. Analyze metric patterns and distributions" >> $GITHUB_STEP_SUMMARY
+          echo "3. Define appropriate alerting thresholds" >> $GITHUB_STEP_SUMMARY
+          echo "4. Configure alerts in Prometheus/Alertmanager" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Documentation" >> $GITHUB_STEP_SUMMARY
+          echo "- See \`docs/staff-repo-structure.md\` for observability guidelines" >> $GITHUB_STEP_SUMMARY
+          echo "- See \`grafana/dashboard.json\` for dashboard configuration" >> $GITHUB_STEP_SUMMARY
+          echo "- See \`ops/alerts.md\` for alert configuration" >> $GITHUB_STEP_SUMMARY
