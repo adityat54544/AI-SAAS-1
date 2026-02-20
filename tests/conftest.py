@@ -1,11 +1,17 @@
 """
 Pytest configuration and fixtures.
+Provides CI-safe testing with mock services and environment isolation.
 """
 
 import os
 import pytest
 from unittest.mock import MagicMock, patch, AsyncMock
 from fastapi.testclient import TestClient
+
+
+# Set test environment BEFORE importing app modules
+os.environ.setdefault("ENVIRONMENT", "test")
+os.environ.setdefault("CI", "true")
 
 
 # Configure pytest markers
@@ -19,6 +25,15 @@ def pytest_configure(config):
     )
     config.addinivalue_line(
         "markers", "redis: mark test as requiring Redis connection"
+    )
+    config.addinivalue_line(
+        "markers", "supabase: mark test as requiring Supabase connection"
+    )
+    config.addinivalue_line(
+        "markers", "github: mark test as requiring GitHub API"
+    )
+    config.addinivalue_line(
+        "markers", "gemini: mark test as requiring Gemini API"
     )
 
 
