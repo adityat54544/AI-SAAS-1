@@ -2,6 +2,10 @@
 
 **Production-Grade AI-Powered DevOps Automation Platform**
 
+> Maintained by Aditya Tiwari  
+> Architecture: AI DevOps Automation Platform  
+> Development Model: Trunk-Based Continuous Delivery
+
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat&logo=next.js)](https://nextjs.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=flat&logo=supabase)](https://supabase.com/)
@@ -21,6 +25,16 @@
 **Architecture:** Distributed AI DevOps SaaS Platform
 
 This repository follows a single-branch workflow where `main` represents the latest stable system state. All development occurs through short-lived branches that are merged and deleted immediately to maintain clarity, stability, and continuous deployment readiness.
+
+---
+
+## Documentation
+
+- System Overview → [docs/system-overview.md](docs/system-overview.md)
+- Architecture Decisions → [docs/adr/](docs/adr/)
+- Engineering Principles → [docs/engineering_principles.md](docs/engineering_principles.md)
+- Observability → [docs/observability.md](docs/observability.md)
+- Branch Strategy → [docs/branch_strategy.md](docs/branch_strategy.md)
 
 ---
 
