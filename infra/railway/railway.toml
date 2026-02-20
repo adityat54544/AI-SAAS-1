@@ -1,9 +1,14 @@
 # Railway Configuration for AutoDevOps AI Platform
 # This file defines the service architecture for Railway deployment
+# IMPORTANT: All deployments must originate from the 'main' branch only
 
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
+
+# Trunk-Based Development: Deploy only from main branch
+[build.branches]
+main = true
 
 # ==============================================================================
 # Service: autodevops-api (FastAPI Backend)
