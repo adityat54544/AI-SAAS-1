@@ -442,13 +442,78 @@ vercel --prod
 
 ---
 
-## Branch Strategy
+## Single-Branch Workflow / Trunk-Based Development
 
-This repository uses a single-branch workflow.
+This repository enforces a **trunk-based development** model where `main` is the only permanent branch and the sole source of truth for deployments.
 
-- All development occurs via short-lived branches.
-- Branches are merged immediately into `main`.
-- No long-lived branches are maintained.
+### Engineering Rationale
+
+| Principle | Benefit |
+|-----------|---------|
+| **Single Source of Truth** | Eliminates merge complexity and integration hell |
+| **Continuous Integration** | All changes tested together, reducing integration risks |
+| **Faster Feedback Loop** | Immediate CI/CD feedback on every merge |
+| **Reduced Branch Sprawl** | No stale branches, no confusion about deployment state |
+| **Simplified Deployment** | One branch to deploy, one pipeline to maintain |
+
+### Workflow Model
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│              Trunk-Based Development Workflow               │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  main ───────────────────────────────────────────────●────▶ │
+│         ↑              ↑              ↑                     │
+│         │              │              │                     │
+│    feature/a      fix/b         refactor/c                 │
+│    (2 days)       (1 day)        (3 days)                  │
+│         │              │              │                     │
+│         └──────────────┴──────────────┘                     │
+│                   │                                         │
+│            PR + CI/CD + Review                              │
+│                   │                                         │
+│              Merge & Delete                                 │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Key Rules
+
+1. **`main` is Protected**: No direct pushes, force pushes, or deletions
+2. **All Changes via PR**: Every change requires a pull request with CI passing
+3. **Short-Lived Branches**: Feature branches exist for < 3 days maximum
+4. **Immediate Cleanup**: Branches deleted immediately after merge
+5. **Deployment Source**: Only `main` triggers production deployments
+
+### Branch Lifecycle
+
+```bash
+# 1. Create short-lived branch
+git checkout -b feature/my-feature main
+
+# 2. Make focused changes
+git add . && git commit -m "feat: add new feature"
+
+# 3. Push and open PR
+git push origin feature/my-feature
+
+# 4. After CI passes and approval, merge via GitHub UI
+
+# 5. Branch auto-deletes after merge (enable in GitHub settings)
+```
+
+### Forbidden Patterns
+
+- ❌ Long-lived feature branches (> 3 days)
+- ❌ `develop`, `staging`, or `release/*` branches
+- ❌ Direct commits to `main`
+- ❌ Force pushes to `main`
+- ❌ Merging without passing CI
+
+### Detailed Documentation
+
+See [`docs/branch_strategy.md`](docs/branch_strategy.md) for complete workflow guidelines, branch naming conventions, and emergency procedures.
 
 ---
 
