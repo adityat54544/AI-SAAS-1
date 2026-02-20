@@ -28,6 +28,13 @@ wheels/
 # Environment variables
 .env
 .env.local
+.env.*.local
+
+# Secret migration files
+temp_secret_migration.json
+*.secret
+*.key
+*.pem
 
 # IDE
 .vscode/
