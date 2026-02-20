@@ -1,0 +1,144 @@
+# Railway Configuration for AutoDevOps AI Platform
+# This file defines the service architecture for Railway deployment
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+# ==============================================================================
+# Service: autodevops-api (FastAPI Backend)
+# ==============================================================================
+[[services]]
+name = "autodevops-api"
+source = "."
+
+[services.build]
+context = "."
+dockerfile = "Dockerfile.api"
+
+[services.variables]
+# Application
+ENVIRONMENT = "production"
+APP_NAME = "AutoDevOps AI Platform"
+PORT = "8000"
+
+# AI Configuration
+AI_MODEL_DEFAULT = "gemini-1.5-flash"
+AI_MAX_TOKENS_PER_TASK = "32000"
+AI_DAILY_QUOTA_PER_USER = "100000"
+
+# Rate Limiting
+RATE_LIMIT_REQUESTS = "100"
+RATE_LIMIT_WINDOW_SECONDS = "60"
+
+# Observability
+LOG_FORMAT = "json"
+LOG_LEVEL = "INFO"
+SENTRY_TRACES_SAMPLE_RATE = "0.1"
+
+[services.healthcheck]
+path = "/health"
+interval = 30
+timeout = 10
+
+[[services.domains]]
+name = "api.autodevops.ai"
+
+# ==============================================================================
+# Service: autodevops-worker (BullMQ Workers)
+# ==============================================================================
+[[services]]
+name = "autodevops-worker"
+source = "."
+
+[services.build]
+context = "."
+dockerfile = "Dockerfile.worker"
+
+[services.variables]
+# Worker Configuration
+WORKER_CONCURRENCY = "5"
+ANALYSIS_CONCURRENCY = "2"
+SYNC_CONCURRENCY = "5"
+CI_CONCURRENCY = "2"
+
+# AI Configuration
+AI_MODEL_DEFAULT = "gemini-1.5-flash"
+AI_MAX_TOKENS_PER_TASK = "32000"
+
+# Observability
+LOG_FORMAT = "json"
+LOG_LEVEL = "INFO"
+
+# Redis (Railway plugin)
+REDIS_URL = "${{Redis.REDIS_URL}}"
+
+[services.healthcheck]
+command = "node -e \"process.exit(0)\""
+interval = 60
+timeout = 10
+
+# ==============================================================================
+# Service: autodevops-cron (Scheduled Jobs)
+# ==============================================================================
+[[services]]
+name = "autodevops-cron"
+source = "."
+
+[services.build]
+context = "."
+dockerfile = "Dockerfile.cron"
+
+[services.variables]
+# Cron Configuration
+BACKUP_SCHEDULE = "0 2 * * *"  # Daily at 2 AM UTC
+CLEANUP_SCHEDULE = "0 4 * * *" # Daily at 4 AM UTC
+
+# Backup Configuration
+BACKUP_RETENTION_DAYS = "30"
+S3_BUCKET = "${{S3_BUCKET}}"
+
+# Observability
+LOG_FORMAT = "json"
+LOG_LEVEL = "INFO"
+
+# Redis (Railway plugin)
+REDIS_URL = "${{Redis.REDIS_URL}}"
+
+[services.healthcheck]
+command = "node -e \"process.exit(0)\""
+interval = 300
+timeout = 10
+
+# ==============================================================================
+# Plugin: Redis (Required for BullMQ)
+# ==============================================================================
+[[plugins]]
+name = "Redis"
+
+# ==============================================================================
+# Networking
+# ==============================================================================
+[networking]
+# Internal networking between services
+internalDomain = "railway.internal"
+
+# ==============================================================================
+# Scaling Configuration
+# ==============================================================================
+[[scaling]]
+service = "autodevops-api"
+minReplicas = 1
+maxReplicas = 3
+targetCPU = 70
+
+[[scaling]]
+service = "autodevops-worker"
+minReplicas = 1
+maxReplicas = 5
+targetCPU = 80
+
+[[scaling]]
+service = "autodevops-cron"
+minReplicas = 1
+maxReplicas = 1
