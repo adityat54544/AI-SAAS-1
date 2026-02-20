@@ -66,6 +66,25 @@ pip install pre-commit
 pre-commit install
 ```
 
+### Local Commit Linting (Optional but Recommended)
+
+To get local commit message validation before pushing:
+
+```bash
+# Install commitlint and husky for local git hooks
+npm install --save-dev @commitlint/cli @commitlint/config-conventional husky
+
+# Initialize husky
+npx husky init
+
+# Add commitlint hook
+echo "npx --no -- commitlint --edit \$1" > .husky/commit-msg
+```
+
+This will validate your commit messages locally before each commit. The CI will also validate commits on every PR, so local setup is optional but recommended for faster feedback.
+
+**Note:** The repository includes `.commitlintrc.json` which defines the commit message rules. Local setup ensures you catch issues before pushing.
+
 ### Environment Configuration
 
 1. Copy `.env.example` to `.env`
