@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### Documentation
+- **Founder-level README.md**: Comprehensive technical documentation with system architecture, technology decisions, security model, and operational practices
+- **docs/staff-overview.md**: Staff-engineer narrative explaining architectural decisions, trade-offs, and operational considerations
+- **docs/architecture.md**: Detailed architecture documentation with Mermaid diagrams for async job lifecycle, deployment topology, and data flows
+- GitHub-renderable Mermaid diagrams for system architecture, sequence flows, and state machines
+- Technology decision table with rationale and trade-offs
+- Clear ownership attribution (Aditya Tiwari, Founder & Lead Engineer)
+
 #### Infrastructure & Deployment
 - Railway service separation with three distinct services (API, worker, cron)
 - Service-specific Dockerfiles with security hardening
