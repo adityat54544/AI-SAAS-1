@@ -33,8 +33,23 @@ The repository has been successfully consolidated to a single-branch (`main`) tr
 | Remote Branch | Status | Action Required |
 |---------------|--------|-----------------|
 | `origin/main` | ✅ Current | Production source |
-| `origin/improve/foundation-finalize` | ⚠️ Stale | Can be deleted after push |
-| `origin/repo/workflow-hardening` | ⚠️ Stale | Can be deleted after push |
+| `origin/improve/foundation-finalize` | ✅ Deleted | Cleanup complete |
+| `origin/repo/workflow-hardening` | ✅ Deleted | Cleanup complete |
+| `origin/dependabot/*` | ℹ️ Automated | Dependabot PR branches (not dev branches) |
+
+### Note on Dependabot Branches
+
+The following remote branches are **Dependabot automated branches** for dependency updates:
+- `origin/dependabot/docker/node-25-alpine`
+- `origin/dependabot/docker/python-3.14-slim`
+- `origin/dependabot/github_actions/github-actions-44194acf7f`
+
+These are NOT development branches. They are temporary branches created by GitHub's Dependabot for automated dependency update PRs. They follow a different workflow:
+- Dependabot creates these branches automatically
+- They are managed through GitHub PR interface
+- They can be merged or closed via the Dependabot PRs
+
+**Trunk-based development compliance is maintained** - no manual development branches exist.
 
 ---
 
