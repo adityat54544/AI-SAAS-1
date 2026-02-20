@@ -48,8 +48,14 @@ class Settings(BaseSettings):
     ai_model: str = "gemini-1.5-flash"
 
     # Redis Configuration
+    # Primary Redis URL - can be standalone Redis or Upstash
     redis_url: str = "redis://localhost:6379/0"
     redis_password: Optional[str] = None
+    
+    # Supabase Redis Configuration (alternative to standalone Redis)
+    # If set, takes precedence over redis_url for Supabase-managed Redis
+    supabase_redis_url: Optional[str] = None
+    supabase_redis_password: Optional[str] = None
 
     # Encryption Configuration
     encryption_key: Optional[str] = None  # AES-256 key (32 bytes, base64 encoded)
@@ -77,6 +83,41 @@ class Settings(BaseSettings):
     def cors_origins_list(self) -> list[str]:
         """Parse CORS origins from comma-separated string."""
         return [origin.strip() for origin in self.cors_origins.split(",")]
+
+    @property
+    def effective_redis_url(self) -> str:
+        """
+        Get the effective Redis URL.
+        
+        Priority order:
+        1. SUPABASE_REDIS_URL if set (Supabase-managed Redis)
+        2. REDIS_URL (standalone Redis or Upstash)
+        3. Default localhost Redis for development
+        
+        Returns:
+            The Redis connection URL to use.
+        """
+        if self.supabase_redis_url:
+            # Use Supabase Redis if configured
+            return self.supabase_redis_url
+        return self.redis_url
+
+    @property
+    def effective_redis_password(self) -> Optional[str]:
+        """
+        Get the effective Redis password.
+        
+        Priority order:
+        1. SUPABASE_REDIS_PASSWORD if set
+        2. REDIS_PASSWORD if set
+        3. None
+        
+        Returns:
+            The Redis password to use, or None.
+        """
+        if self.supabase_redis_url and self.supabase_redis_password:
+            return self.supabase_redis_password
+        return self.redis_password
 
     def is_production(self) -> bool:
         """Check if running in production environment."""
