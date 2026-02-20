@@ -12,6 +12,18 @@
 
 ---
 
+## Project Status
+
+**Stage:** Production-Ready Architecture  
+**Maintainer:** Aditya Tiwari  
+**Development Model:** Trunk-Based Development (single `main` branch)  
+**Deployment:** Railway (Backend & Workers) + Vercel (Frontend)  
+**Architecture:** Distributed AI DevOps SaaS Platform
+
+This repository follows a single-branch workflow where `main` represents the latest stable system state. All development occurs through short-lived branches that are merged and deleted immediately to maintain clarity, stability, and continuous deployment readiness.
+
+---
+
 ## Staff Engineer Repository Governance
 
 This repository follows **staff-engineer level governance practices** for internal-company systems. All code has defined ownership via CODEOWNERS, changes require pull request review, and the codebase maintains comprehensive documentation for operational excellence.
@@ -649,7 +661,7 @@ flowchart LR
 |----------|---------|
 | `repo/governance_summary.md` | Governance implementation summary |
 | `docs/branch_strategy.md` | Branch workflow guidelines |
-| `repo/workflow_verification.md` | Workflow verification checklist |
+| `docs/workflow_verification.md` | Workflow verification checklist |
 
 ---
 
