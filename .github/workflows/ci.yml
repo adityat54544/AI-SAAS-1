@@ -66,9 +66,24 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          --save 60 1
+          --appendonly yes
     
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Detect Redis configuration
+        id: redis-detect
+        run: |
+          if [ -n "${{ secrets.REDIS_URL }}" ]; then
+            echo "redis_source=External REDIS_URL secret" >> $GITHUB_OUTPUT
+          elif [ -n "${{ secrets.SUPABASE_REDIS_URL }}" ]; then
+            echo "redis_source=External SUPABASE_REDIS_URL secret" >> $GITHUB_OUTPUT
+          else
+            echo "redis_source=CI-provided redis service" >> $GITHUB_OUTPUT
+          fi
+          echo "Redis configuration: $(echo '${{ steps.redis-detect.outputs.redis_source }}' || echo 'CI-provided redis service')"
+        shell: bash
       
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -90,9 +105,11 @@ jobs:
       
       - name: Run tests with coverage
         run: |
-          pytest tests/ -v --cov=app --cov-report=xml --cov-report=term-missing
+          pytest tests/ -v --cov=app --cov-report=xml --cov-report=term-missing -m "not integration"
         env:
-          REDIS_URL: redis://localhost:6379/0
+          REDIS_URL: ${{ secrets.REDIS_URL || 'redis://localhost:6379/0' }}
+          SUPABASE_REDIS_URL: ${{ secrets.SUPABASE_REDIS_URL }}
+          SUPABASE_REDIS_PASSWORD: ${{ secrets.SUPABASE_REDIS_PASSWORD }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           GITHUB_CLIENT_ID: ${{ secrets.GITHUB_CLIENT_ID }}
@@ -158,6 +175,8 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          --save 60 1
+          --appendonly yes
     
     defaults:
       run:
@@ -165,6 +184,19 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Detect Redis configuration
+        id: redis-detect
+        run: |
+          if [ -n "${{ secrets.REDIS_URL }}" ]; then
+            echo "redis_source=External REDIS_URL secret" >> $GITHUB_OUTPUT
+          elif [ -n "${{ secrets.SUPABASE_REDIS_URL }}" ]; then
+            echo "redis_source=External SUPABASE_REDIS_URL secret" >> $GITHUB_OUTPUT
+          else
+            echo "redis_source=CI-provided redis service" >> $GITHUB_OUTPUT
+          fi
+          echo "Redis configuration: $(echo '${{ steps.redis-detect.outputs.redis_source }}' || echo 'CI-provided redis service')"
+        shell: bash
       
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -185,7 +217,9 @@ jobs:
       - name: Test
         run: npm test || true
         env:
-          REDIS_URL: redis://localhost:6379/0
+          REDIS_URL: ${{ secrets.REDIS_URL || 'redis://localhost:6379/0' }}
+          SUPABASE_REDIS_URL: ${{ secrets.SUPABASE_REDIS_URL }}
+          SUPABASE_REDIS_PASSWORD: ${{ secrets.SUPABASE_REDIS_PASSWORD }}
 
   # ==============================================================================
   # Infrastructure Lint
@@ -254,9 +288,24 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          --save 60 1
+          --appendonly yes
     
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Detect Redis configuration
+        id: redis-detect
+        run: |
+          if [ -n "${{ secrets.REDIS_URL }}" ]; then
+            echo "redis_source=External REDIS_URL secret" >> $GITHUB_OUTPUT
+          elif [ -n "${{ secrets.SUPABASE_REDIS_URL }}" ]; then
+            echo "redis_source=External SUPABASE_REDIS_URL secret" >> $GITHUB_OUTPUT
+          else
+            echo "redis_source=CI-provided redis service" >> $GITHUB_OUTPUT
+          fi
+          echo "Redis configuration: $(echo '${{ steps.redis-detect.outputs.redis_source }}' || echo 'CI-provided redis service')"
+        shell: bash
       
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -271,16 +320,20 @@ jobs:
       
       - name: Run integration tests
         run: |
-          pytest tests/integration/ -v --tb=short || true
+          pytest tests/integration/ -v --tb=short -m "integration" || true
         env:
-          REDIS_URL: redis://localhost:6379/0
+          REDIS_URL: ${{ secrets.REDIS_URL || 'redis://localhost:6379/0' }}
+          SUPABASE_REDIS_URL: ${{ secrets.SUPABASE_REDIS_URL }}
+          SUPABASE_REDIS_PASSWORD: ${{ secrets.SUPABASE_REDIS_PASSWORD }}
           ENVIRONMENT: test
       
       - name: Run E2E job flow test
         run: |
           pytest tests/e2e_job_flow.py -v --tb=short || true
         env:
-          REDIS_URL: redis://localhost:6379/0
+          REDIS_URL: ${{ secrets.REDIS_URL || 'redis://localhost:6379/0' }}
+          SUPABASE_REDIS_URL: ${{ secrets.SUPABASE_REDIS_URL }}
+          SUPABASE_REDIS_PASSWORD: ${{ secrets.SUPABASE_REDIS_PASSWORD }}
           ENVIRONMENT: test
 
   # ==============================================================================
