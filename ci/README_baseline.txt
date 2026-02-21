@@ -1,178 +1,169 @@
-========================================
-REPOSITORY BASELINE VERIFICATION REPORT
-========================================
+# CI Baseline Report
+# Date: 2026-02-20
+# Branch: fix/ci-redis-supabase
 
-Repository: AutoDevOps AI Platform
-Date: 2026-02-20
-Branch: improve/foundation-finalize
-Verification Type: Staff-Engineer Foundation Finalize
+## Summary
 
-========================================
-GOVERNANCE FILES VERIFICATION
-========================================
+This baseline report documents the state of the CI pipeline after implementing
+Redis fallback support and Supabase Redis integration.
 
-.github/CODEOWNERS                    ✅ EXISTS
-.github/ISSUE_TEMPLATE/bug.md         ✅ EXISTS
-.github/ISSUE_TEMPLATE/feature_request.md ✅ EXISTS
-.github/dependabot.yml                ✅ EXISTS
-.github/workflows/commitlint.yml      ✅ EXISTS
-.commitlintrc.json                    ✅ EXISTS
+## Changes Implemented
 
-========================================
-DOCUMENTATION VERIFICATION
-========================================
+### 1. CI Workflow Updates (.github/workflows/ci.yml)
 
-MAINTAINERS.md                        ✅ EXISTS
-SECURITY.md                           ✅ EXISTS
-CONTRIBUTING.md                       ✅ EXISTS
-RELEASE.md                            ✅ EXISTS
-README.md                             ✅ UPDATED (Staff Engineer badge added)
+- Added Redis service fallback with persistence options:
+  * --save 60 1
+  * --appendonly yes
 
-docs/engineering_principles.md        ✅ EXISTS
-docs/final-improvements.md            ✅ EXISTS
-docs/staff-repo-structure.md          ✅ EXISTS
-docs/adr/ADR-007-repository-structure.md ✅ EXISTS
-docs/branch_strategy.md               ✅ EXISTS (pre-existing)
+- Added Redis environment detection step to all Redis-dependent jobs:
+  * backend-test
+  * workers-test
+  * integration-test
 
-========================================
-OPERATIONS VERIFICATION
-========================================
+- Environment variables now support fallback:
+  * REDIS_URL: ${{ secrets.REDIS_URL || 'redis://localhost:6379/0' }}
+  * SUPABASE_REDIS_URL: ${{ secrets.SUPABASE_REDIS_URL }}
+  * SUPABASE_REDIS_PASSWORD: ${{ secrets.SUPABASE_REDIS_PASSWORD }}
 
-ops/oncall_playbook.md                ✅ EXISTS
-ops/runbook.md                        ✅ EXISTS (pre-existing)
-ops/verification.md                   ✅ EXISTS (pre-existing)
-ops/alerts.md                         ✅ EXISTS (pre-existing)
-ops/auto-scaler.md                    ✅ EXISTS (pre-existing)
-ops/branch_protection.md              ✅ EXISTS (pre-existing)
+### 2. Configuration Updates (app/config.py)
 
-========================================
-SCRIPTS VERIFICATION
-========================================
+- Added new environment variables:
+  * supabase_redis_url: Optional[str] = None
+  * supabase_redis_password: Optional[str] = None
 
-scripts/check_repo_secrets.sh         ✅ EXISTS
-scripts/rotate_supabase_key.sh        ✅ EXISTS (pre-existing)
-scripts/rotate_gemini_key.sh          ✅ EXISTS (pre-existing)
-scripts/backup_pg.sh                  ✅ EXISTS (pre-existing)
+- Added helper properties:
+  * effective_redis_url: Returns the correct Redis URL based on priority
+  * effective_redis_password: Returns the correct Redis password
 
-========================================
-CI/CD VERIFICATION
-========================================
+### 3. Environment Example (.env.example)
 
-.github/workflows/ci.yml              ✅ EXISTS (pre-existing)
-.github/workflows/commitlint.yml      ✅ EXISTS
-.github/workflows/monitoring_checks.yml ✅ EXISTS
+- Documented new Supabase Redis configuration options
+- Added clear comments explaining priority order
 
-========================================
-YAML SYNTAX VERIFICATION
-========================================
+### 4. Test Infrastructure (tests/conftest.py, pytest.ini)
 
-.github/workflows/ci.yml              ✅ VALID YAML
-.github/workflows/commitlint.yml      ✅ VALID YAML
-.github/workflows/monitoring_checks.yml ✅ VALID YAML
-.github/dependabot.yml                ✅ VALID YAML
+- Added pytest markers:
+  * @pytest.mark.integration - For tests requiring Redis
+  * @pytest.mark.unit - For isolated tests
+  * @pytest.mark.redis - For Redis-specific tests
 
-========================================
-REQUIRED METRICS (DOCUMENTED)
-========================================
+- Added mock fixtures:
+  * mock_redis: Synchronous Redis mock
+  * mock_redis_async: Async Redis mock
+  * redis_url: Configurable Redis URL fixture
 
-The following metrics are documented in monitoring_checks.yml:
+- Integration tests are automatically skipped when Redis is unavailable
 
-1. requests_total       - Counter - HTTP request tracking
-2. job_queue_length     - Gauge   - Queue backlog monitoring
-3. ai_calls_total       - Counter - AI usage tracking
-4. ai_errors_total      - Counter - AI error tracking
-5. db_connection_errors - Counter - Database health
+### 5. Documentation (docs/redis-setup.md)
 
-NOTE: No thresholds are enforced. Baseline data collection required.
+- Complete guide for Redis configuration
+- Upstash free tier setup instructions
+- Supabase Redis setup instructions
+- GitHub Actions secrets configuration guide
 
-========================================
-BRANCH PROTECTION REQUIREMENTS
-========================================
+## Test Categories
 
-The following settings should be configured in GitHub:
+### Unit Tests (always run)
+- tests/test_health.py
+- tests/test_basic.py
+- tests/test_ai_resilience.py
 
-Location: Settings → Branches → Add Rule → main
+### Integration Tests (require Redis or skipped)
+- tests/integration/ (if exists)
+- tests/e2e_job_flow.py (partial mocking)
 
-Required Settings:
-✓ Require pull request before merging
-  - Required approvals: 1
-✓ Require status checks to pass
-  - Required checks: security-scan, backend-test, frontend-test, 
-                     workers-test, infra-lint, integration-test
-✓ Require linear history
-✓ Automatically delete head branches
-✓ Block force pushes
-✓ Block branch deletion
-✓ Require conversation resolution before merge
+## Required GitHub Actions Secrets
 
-NOT Required:
-✗ Require signed commits (adds friction for solo dev)
+### Required for Production
+| Secret Name | Description |
+|-------------|-------------|
+| SUPABASE_URL | Supabase project URL |
+| SUPABASE_SERVICE_ROLE_KEY | Supabase service role key |
+| GITHUB_CLIENT_ID | GitHub OAuth client ID |
+| GITHUB_CLIENT_SECRET | GitHub OAuth client secret |
+| GEMINI_API_KEY | Google Gemini API key |
 
-========================================
-MANUAL STEPS REQUIRED
-========================================
+### Redis Configuration (at least one required for production)
+| Secret Name | Description |
+|-------------|-------------|
+| REDIS_URL | Redis connection URL (Upstash or self-hosted) |
+| REDIS_PASSWORD | Redis password (optional) |
+| SUPABASE_REDIS_URL | Supabase Redis URL |
+| SUPABASE_REDIS_PASSWORD | Supabase Redis password |
 
-1. [ ] Configure branch protection rules in GitHub Settings
-       Path: Settings → Branches → Add Rule for 'main'
+## CI Job Flow
 
-2. [ ] Verify GitHub secrets are configured
-       Required: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
-                 GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET,
-                 GEMINI_API_KEY, RAILWAY_TOKEN
+1. security-scan (parallel)
+   - detect-secrets
+   - gitleaks
+   - bandit
 
-3. [ ] Enable CODEOWNERS review enforcement
-       Path: Settings → Branches → Edit Rule → Enable "Require review from Code Owners"
+2. backend-test (needs: security-scan)
+   - Uses Redis service container
+   - Runs unit tests
+   - Reports coverage
 
-4. [ ] Test CI/CD pipeline with a sample PR
+3. frontend-test (needs: security-scan)
+   - npm ci
+   - lint
+   - build
 
-5. [ ] Verify Railway deployment from main
+4. workers-test (needs: security-scan)
+   - Uses Redis service container
+   - npm ci
+   - lint
+   - build
+   - test
 
-========================================
-FILES ADDED IN THIS BRANCH
-========================================
+5. integration-test (needs: backend-test, frontend-test, workers-test)
+   - Uses Redis service container
+   - Runs integration tests
+   - Runs E2E tests
 
-Phase 1 - Governance Files:
-  .github/CODEOWNERS
-  .github/ISSUE_TEMPLATE/bug.md
-  .github/ISSUE_TEMPLATE/feature_request.md
-  .github/dependabot.yml
-  .github/workflows/commitlint.yml
-  .commitlintrc.json
+6. build (needs: backend-test, frontend-test, workers-test)
+   - Builds Docker images
+   - Pushes to ghcr.io
 
-Phase 2 - Documentation:
-  MAINTAINERS.md
-  SECURITY.md
-  CONTRIBUTING.md
-  RELEASE.md
-  docs/engineering_principles.md
-  docs/final-improvements.md
+7. deploy (needs: build)
+   - Deploys to Railway
 
-Phase 3 - ADR & Staff Docs:
-  docs/adr/ADR-007-repository-structure.md
-  docs/staff-repo-structure.md
+## Expected CI Behavior
 
-Phase 4 - CI Updates:
-  .github/workflows/monitoring_checks.yml
+### Without External Redis Secrets
+- CI uses Redis service container (redis:7-alpine)
+- All tests run against localhost:6379
+- Integration tests pass with CI-provided Redis
 
-Phase 5 - Security & Ops:
-  scripts/check_repo_secrets.sh
-  ops/oncall_playbook.md
+### With External Redis Secrets
+- CI detects external Redis configuration
+- Logs "Using External REDIS_URL secret" or similar
+- Tests run against external Redis instance
 
-Phase 6 - README Updates:
-  README.md (modified)
+## Verification Commands
 
-========================================
-VERIFICATION SUMMARY
-========================================
+```bash
+# Install dependencies
+pip install -r requirements.txt
 
-Total Files Created: 17 new files
-Total Files Modified: 1 file (README.md)
-YAML Validation: PASSED
-Documentation Coverage: COMPLETE
-Governance Structure: COMPLETE
+# Run linting
+ruff check app/
 
-Status: READY FOR PR
+# Run type checking
+mypy app/ --ignore-missing-imports
 
-========================================
-END OF BASELINE REPORT
-========================================
+# Run unit tests only
+pytest tests/ -v -m "not integration"
+
+# Run all tests
+pytest tests/ -v
+
+# Run with coverage
+pytest tests/ -v --cov=app --cov-report=term-missing
+```
+
+## Notes
+
+- CI will always provide a Redis service container as fallback
+- External Redis is recommended for production deployments
+- Unit tests should pass without any external dependencies
+- Integration tests are skipped if Redis is unavailable

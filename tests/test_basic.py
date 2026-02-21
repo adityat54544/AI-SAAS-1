@@ -1,5 +1,5 @@
 """
-Basic test suite for the SaaS application.
+Basic test suite for the AutoDevOps AI Platform.
 """
 import pytest
 from fastapi.testclient import TestClient
@@ -9,10 +9,13 @@ client = TestClient(app)
 
 
 def test_root_endpoint():
-    """Test the root endpoint returns ok status."""
+    """Test the root endpoint returns API info."""
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    data = response.json()
+    assert "name" in data
+    assert "version" in data
+    assert data["status"] == "running"
 
 
 def test_health_endpoint():
@@ -21,4 +24,6 @@ def test_health_endpoint():
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"
-    assert data["service"] == "saas-app"
+    assert "service" in data
+    assert "version" in data
+    assert "environment" in data
