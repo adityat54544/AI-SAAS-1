@@ -187,12 +187,14 @@ async def github_oauth_callback(
         # Set session cookie or return token
         response = RedirectResponse(url=redirect_url)
         # In production, use proper session management
+        # For cross-site OAuth flows, we need SameSite=None with Secure
         response.set_cookie(
             key="user_id",
             value=user["id"],
             httponly=True,
-            secure=settings.is_production(),
-            samesite="lax",
+            secure=True,  # Required for SameSite=None
+            samesite="none",  # Required for cross-site cookie sending
+            path="/",
             max_age=60 * 60 * 24 * 7,  # 7 days
         )
         
