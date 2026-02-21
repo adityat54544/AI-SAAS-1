@@ -3,6 +3,15 @@ venv/
 env/
 .venv/
 
+# Node.js / Frontend
+node_modules/
+.npm
+.next/
+out/
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
 # Python
 __pycache__/
 *.py[cod]
