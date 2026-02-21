@@ -1,40 +1,25 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { Github, RefreshCw, BarChart3, Shield, Zap, GitBranch } from 'lucide-react';
+import { Github, RefreshCw, BarChart3, Shield, Zap, GitBranch, LogOut } from 'lucide-react';
 import Link from 'next/link';
-
-interface Repository {
-  id: string;
-  name: string;
-  full_name: string;
-  description: string | null;
-  language: string | null;
-  html_url: string;
-  stargazers_count: number;
-  is_private: boolean;
-  last_analyzed_at: string | null;
-}
-
-async function fetchRepositories() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-  const response = await fetch(`${apiUrl}/repositories`, {
-    credentials: 'include',
-    mode: 'cors',
-  });
-  if (!response.ok) throw new Error('Failed to fetch repositories');
-  return response.json();
-}
+import { useAuth } from '@/lib/auth-context';
+import { repositoriesApi, Repository } from '@/lib/api';
 
 export default function DashboardPage() {
-  const { data, isLoading, error, refetch } = useQuery({
+  const { user, isLoading: authLoading, isAuthenticated, signIn, signOut } = useAuth();
+
+  const { data, isLoading: reposLoading, error, refetch } = useQuery({
     queryKey: ['repositories'],
-    queryFn: fetchRepositories,
+    queryFn: repositoriesApi.list,
+    enabled: isAuthenticated,
   });
 
   const repositories = data?.repositories || [];
+  const isLoading = authLoading || reposLoading;
 
-  if (isLoading) {
+  // Show loading state while checking authentication
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
@@ -42,19 +27,43 @@ export default function DashboardPage() {
     );
   }
 
+  // Show login prompt if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center max-w-md mx-auto p-8">
+          <Github className="w-16 h-16 text-gray-400 mx-auto mb-6" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Welcome to AutoDevOps AI</h2>
+          <p className="text-gray-600 mb-6">
+            Connect your GitHub account to start analyzing and improving your repositories.
+          </p>
+          <button
+            onClick={() => signIn()}
+            className="btn btn-primary inline-flex items-center gap-2 px-6 py-3"
+          >
+            <Github className="w-5 h-5" />
+            Connect with GitHub
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Error Loading Dashboard</h2>
-          <p className="text-gray-600 mb-4">Please connect your GitHub account to continue.</p>
-          <a
-            href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/github`}
-            className="btn btn-primary inline-flex items-center gap-2"
+          <p className="text-gray-600 mb-4">
+            {error instanceof Error ? error.message : 'An error occurred while loading your data.'}
+          </p>
+          <button
+            onClick={() => refetch()}
+            className="btn btn-primary"
           >
-            <Github className="w-5 h-5" />
-            Connect GitHub
-          </a>
+            Try Again
+          </button>
         </div>
       </div>
     );
@@ -66,7 +75,12 @@ export default function DashboardPage() {
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">AutoDevOps AI</h1>
+            <div className="flex items-center gap-4">
+              <h1 className="text-2xl font-bold text-gray-900">AutoDevOps AI</h1>
+              {user?.email && (
+                <span className="text-sm text-gray-500">{user.email}</span>
+              )}
+            </div>
             <div className="flex items-center gap-4">
               <button
                 onClick={() => refetch()}
@@ -75,13 +89,21 @@ export default function DashboardPage() {
                 <RefreshCw className="w-4 h-4" />
                 Refresh
               </button>
-              <a
-                href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/github`}
+              <button
+                onClick={() => signIn()}
                 className="btn btn-primary inline-flex items-center gap-2"
               >
                 <Github className="w-5 h-5" />
                 Connect Repository
-              </a>
+              </button>
+              <button
+                onClick={signOut}
+                className="btn btn-secondary inline-flex items-center gap-2"
+                title="Sign out"
+              >
+                <LogOut className="w-4 h-4" />
+                Sign Out
+              </button>
             </div>
           </div>
         </div>
@@ -141,20 +163,24 @@ export default function DashboardPage() {
         <div className="card">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Connected Repositories</h2>
           
-          {repositories.length === 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+            </div>
+          ) : repositories.length === 0 ? (
             <div className="text-center py-12">
               <Github className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No repositories connected</h3>
               <p className="text-gray-500 mb-4">
                 Connect your GitHub repositories to start analyzing and improving your code.
               </p>
-              <a
-                href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/github`}
+              <button
+                onClick={() => signIn()}
                 className="btn btn-primary inline-flex items-center gap-2"
               >
                 <Github className="w-5 h-5" />
                 Connect GitHub
-              </a>
+              </button>
             </div>
           ) : (
             <div className="space-y-4">
@@ -169,9 +195,9 @@ export default function DashboardPage() {
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-900">
-                        <a href={`/repositories/${repo.id}`} className="hover:text-primary-600">
+                        <Link href={`/repositories/${repo.id}`} className="hover:text-primary-600">
                           {repo.full_name}
-                        </a>
+                        </Link>
                       </h3>
                       <p className="text-sm text-gray-500">
                         {repo.description || 'No description'}
