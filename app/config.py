@@ -69,9 +69,14 @@ class Settings(BaseSettings):
     encryption_key: Optional[str] = "dGVzdC1lbmNyeXB0aW9uLWtleS0zMi1ieXRlcy1sb25n" if _is_test_environment() else None  # AES-256 key (32 bytes, base64 encoded)
 
     # Security Settings
+    # CORS origins - comma-separated list of allowed origins
+    # In production, set CORS_ORIGINS env var to include your frontend URL
+    # Example: https://your-app.vercel.app,https://your-custom-domain.com
     cors_origins: str = "http://localhost:3000,http://localhost:8000"
     
     # Frontend URL for OAuth redirects
+    # In production, set FRONTEND_URL env var to your production frontend
+    # Example: https://your-app.vercel.app
     frontend_url: str = "http://localhost:3000"
     
     jwt_secret: Optional[str] = "test-jwt-secret-for-ci-testing-only" if _is_test_environment() else None

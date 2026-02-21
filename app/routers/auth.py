@@ -292,8 +292,30 @@ async def logout(response: Response):
     """
     Logout user by clearing session cookie.
     """
-    response.delete_cookie(key="session")
+    # Delete cookie with same attributes used when setting it
+    response.delete_cookie(
+        key="session",
+        path="/",
+        domain=None,
+        secure=True,
+        samesite="none",
+    )
     return {"status": "success", "message": "Logged out"}
+
+
+@router.get("/debug/cookies")
+async def debug_cookies(request: Request):
+    """
+    Debug endpoint to verify cookie transmission.
+    Returns all cookies received in the request.
+    """
+    cookies = dict(request.cookies)
+    return {
+        "cookies_received": cookies,
+        "has_session_cookie": "session" in cookies,
+        "session_value": cookies.get("session"),
+        "cookie_count": len(cookies),
+    }
 
 
 @router.post("/token/refresh")
