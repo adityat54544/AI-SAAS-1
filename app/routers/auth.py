@@ -182,19 +182,19 @@ async def github_oauth_callback(
             }, on_constraint="user_id,org_id").execute()
         
         # Redirect to frontend
-        redirect_url = state_data.get("redirect_after") or f"{settings.cors_origins_list[0]}/dashboard"
+        redirect_url = state_data.get("redirect_after") or f"{settings.frontend_url}/dashboard"
         
         # Set session cookie or return token
-        response = RedirectResponse(url=redirect_url)
-        # In production, use proper session management
-        # For cross-site OAuth flows, we need SameSite=None with Secure
+        response = RedirectResponse(url=redirect_url, status_code=302)
+        # Production cross-site OAuth cookie configuration
         response.set_cookie(
-            key="user_id",
+            key="session",
             value=user["id"],
             httponly=True,
-            secure=True,  # Required for SameSite=None
-            samesite="none",  # Required for cross-site cookie sending
+            secure=True,
+            samesite="none",
             path="/",
+            domain=None,  # IMPORTANT: host-only cookie
             max_age=60 * 60 * 24 * 7,  # 7 days
         )
         
@@ -214,7 +214,7 @@ async def get_session(request: Request):
     
     Returns user info and GitHub connection status.
     """
-    user_id = request.cookies.get("user_id")
+    user_id = request.cookies.get("session")
     
     if not user_id:
         return SessionResponse(authenticated=False)
@@ -254,7 +254,7 @@ async def disconnect_github(request: Request):
     
     Revokes GitHub token and removes it from storage.
     """
-    user_id = request.cookies.get("user_id")
+    user_id = request.cookies.get("session")
     
     if not user_id:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -292,7 +292,7 @@ async def logout(response: Response):
     """
     Logout user by clearing session cookie.
     """
-    response.delete_cookie(key="user_id")
+    response.delete_cookie(key="session")
     return {"status": "success", "message": "Logged out"}
 
 
@@ -303,7 +303,7 @@ async def refresh_token(request: Request):
     
     Uses stored refresh token to get a new access token.
     """
-    user_id = request.cookies.get("user_id")
+    user_id = request.cookies.get("session")
     
     if not user_id:
         raise HTTPException(status_code=401, detail="Not authenticated")

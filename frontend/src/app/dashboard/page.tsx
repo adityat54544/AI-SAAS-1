@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { GitHub, RefreshCw, BarChart3, Shield, Zap, GitBranch } from 'lucide-react';
+import { Github, RefreshCw, BarChart3, Shield, Zap, GitBranch } from 'lucide-react';
 import Link from 'next/link';
 
 interface Repository {
@@ -20,6 +20,7 @@ async function fetchRepositories() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
   const response = await fetch(`${apiUrl}/repositories`, {
     credentials: 'include',
+    mode: 'cors',
   });
   if (!response.ok) throw new Error('Failed to fetch repositories');
   return response.json();
@@ -51,7 +52,7 @@ export default function DashboardPage() {
             href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/github`}
             className="btn btn-primary inline-flex items-center gap-2"
           >
-            <GitHub className="w-5 h-5" />
+            <Github className="w-5 h-5" />
             Connect GitHub
           </a>
         </div>
@@ -78,7 +79,7 @@ export default function DashboardPage() {
                 href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/github`}
                 className="btn btn-primary inline-flex items-center gap-2"
               >
-                <GitHub className="w-5 h-5" />
+                <Github className="w-5 h-5" />
                 Connect Repository
               </a>
             </div>
@@ -142,7 +143,7 @@ export default function DashboardPage() {
           
           {repositories.length === 0 ? (
             <div className="text-center py-12">
-              <GitHub className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <Github className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No repositories connected</h3>
               <p className="text-gray-500 mb-4">
                 Connect your GitHub repositories to start analyzing and improving your code.
@@ -151,7 +152,7 @@ export default function DashboardPage() {
                 href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/github`}
                 className="btn btn-primary inline-flex items-center gap-2"
               >
-                <GitHub className="w-5 h-5" />
+                <Github className="w-5 h-5" />
                 Connect GitHub
               </a>
             </div>

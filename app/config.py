@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=None,  # Use Railway environment variables only
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
@@ -70,6 +70,10 @@ class Settings(BaseSettings):
 
     # Security Settings
     cors_origins: str = "http://localhost:3000,http://localhost:8000"
+    
+    # Frontend URL for OAuth redirects
+    frontend_url: str = "http://localhost:3000"
+    
     jwt_secret: Optional[str] = "test-jwt-secret-for-ci-testing-only" if _is_test_environment() else None
     jwt_algorithm: str = "HS256"
     jwt_expiration_minutes: int = 60
