@@ -1,0 +1,11 @@
+# Railway Configuration for AutoDevOps AI Platform
+# Multi-service deployment configuration
+
+[build]
+builder = "dockerfile"
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
