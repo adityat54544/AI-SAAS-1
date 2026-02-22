@@ -1,5 +1,5 @@
-# AutoDevOps AI Platform - API Service (FastAPI)
-# Optimized for Railway deployment
+# AutoDevOps AI Platform - Backend Dockerfile (FastAPI)
+# Optimized for Coolify deployment with dynamic PORT support
 
 # ==============================================================================
 # Stage 1: Builder
@@ -48,18 +48,20 @@ COPY --chown=appuser:appuser requirements.txt .
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    ENVIRONMENT=production \
-    PORT=8000
+    ENVIRONMENT=production
+
+# Coolify sets PORT environment variable dynamically
+# Default to 8000 if not set
+ENV PORT=8000
+EXPOSE $PORT
 
 # Switch to non-root user
 USER appuser
 
-# Expose port
-EXPOSE 8000
-
-# Health check
+# Health check using dynamic port
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
 
-# Run the application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+# Run the application with gunicorn for production
+# Uses PORT environment variable from Coolify
+CMD gunicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2 --worker-class uvicorn.workers.UvicornWorker

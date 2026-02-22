@@ -61,3 +61,17 @@ htmlcov/
 
 # Docker
 *.log
+
+# Vercel
+.vercel/
+vercel.json
+.vercelignore
+
+# Railway
+infra/railway/
+
+# Coolify migration artifacts
+repo_analysis.json
+secrets_inventory.json
+deployment_report.json
+security_migration_report.json

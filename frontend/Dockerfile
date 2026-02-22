@@ -1,61 +1,78 @@
-# Frontend Dockerfile for Railway Deployment
-# Multi-stage build for optimized production image
+# AutoDevOps AI Platform - Frontend Dockerfile (Next.js)
+# Optimized for Coolify deployment with standalone output
 
-# Stage 1: Dependencies and Build
-FROM node:20-alpine AS builder
-
+# ==============================================================================
+# Stage 1: Dependencies
+# ==============================================================================
+FROM node:18-alpine AS deps
 WORKDIR /app
+
+# Install dependencies for native modules
+RUN apk add --no-cache libc6-compat
 
 # Copy package files
 COPY package.json package-lock.json* ./
 
 # Install dependencies
-RUN npm ci --only-production=false
+RUN npm ci --only=production
 
-# Copy source files
+# ==============================================================================
+# Stage 2: Builder
+# ==============================================================================
+FROM node:18-alpine AS builder
+WORKDIR /app
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Set environment variables for build
-ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Build arguments for environment variables (passed from Coolify)
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+ARG NEXT_PUBLIC_API_URL
+
+# Set environment variables for build time
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 # Build the application
 RUN npm run build
 
-# Stage 2: Production Runner
-FROM node:20-alpine AS runner
-
+# ==============================================================================
+# Stage 3: Runner (Production)
+# ==============================================================================
+FROM node:18-alpine AS runner
 WORKDIR /app
 
 # Set environment to production
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
 # Create non-root user for security
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy built application from builder stage
+# Copy the standalone output
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-
-# Set proper ownership
-RUN chown -R nextjs:nodejs /app
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Switch to non-root user
 USER nextjs
 
-# Expose the port (Railway sets PORT dynamically)
+# Expose port
 EXPOSE 3000
 
-# Set the port from environment variable or default to 3000
-ENV PORT=${PORT:-3000}
-ENV HOSTNAME="0.0.0.0"
-
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT:-3000}/ || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
 
 # Start the application
 CMD ["node", "server.js"]

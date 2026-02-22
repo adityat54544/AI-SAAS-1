@@ -1,0 +1,109 @@
+# AutoDevOps AI Platform - Coolify Docker Compose
+# Production deployment configuration
+
+version: '3.8'
+
+services:
+  # ==========================================================================
+  # Frontend Service (Next.js)
+  # ==========================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+        - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://api.autodevops.ai}
+    container_name: autodevops-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://api.autodevops.ai}
+    networks:
+      - coolify-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "coolify.managed=true"
+      - "coolify.serviceType=frontend"
+
+  # ==========================================================================
+  # Backend Service (FastAPI)
+  # ==========================================================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.coolify
+    container_name: autodevops-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - ENVIRONMENT=production
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET}
+      - CORS_ORIGINS=${CORS_ORIGINS:-https://autodevops.ai}
+      - FRONTEND_URL=${FRONTEND_URL:-https://autodevops.ai}
+    networks:
+      - coolify-network
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    labels:
+      - "coolify.managed=true"
+      - "coolify.serviceType=api"
+
+  # ==========================================================================
+  # Redis Service
+  # ==========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: autodevops-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - coolify-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    labels:
+      - "coolify.managed=true"
+      - "coolify.serviceType=database"
+
+networks:
+  coolify-network:
+    driver: bridge
+    labels:
+      - "coolify.managed=true"
+
+volumes:
+  redis-data:
+    driver: local
+    labels:
+      - "coolify.managed=true"
