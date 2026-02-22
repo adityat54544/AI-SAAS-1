@@ -4,9 +4,10 @@ CI/CD generation routes.
 
 from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
+from app.auth import get_current_user, SupabaseUser
 from app.ai.provider import CIConfigRequest
 from app.ai.router import get_ai_router
 from app.supabase_client import supabase
@@ -27,20 +28,16 @@ class CIValidateRequest(BaseModel):
     platform: str = "github_actions"
 
 
-def _get_user_id(request: Request) -> str:
-    """Extract user ID from request cookies."""
-    user_id = request.cookies.get("user_id")
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    return user_id
-
-
 @router.post("/generate")
-async def generate_ci_config(request: Request, data: CIGenerateRequest):
+async def generate_ci_config(
+    request: Request,
+    data: CIGenerateRequest,
+    user: SupabaseUser = Depends(get_current_user),
+):
     """
     Generate CI/CD configuration using AI.
     """
-    user_id = _get_user_id(request)
+    user_id = user.id
     
     try:
         # Verify repository access
@@ -164,12 +161,14 @@ async def list_ci_templates():
 
 
 @router.post("/validate")
-async def validate_ci_config(request: Request, data: CIValidateRequest):
+async def validate_ci_config(
+    request: Request,
+    data: CIValidateRequest,
+    user: SupabaseUser = Depends(get_current_user),
+):
     """
     Validate CI/CD configuration.
     """
-    user_id = _get_user_id(request)
-    
     try:
         # Basic validation
         issues = []
@@ -216,11 +215,15 @@ async def validate_ci_config(request: Request, data: CIValidateRequest):
 
 
 @router.get("/artifacts/{repository_id}")
-async def list_ci_artifacts(request: Request, repository_id: str):
+async def list_ci_artifacts(
+    request: Request,
+    repository_id: str,
+    user: SupabaseUser = Depends(get_current_user),
+):
     """
     List CI/CD artifacts for a repository.
     """
-    user_id = _get_user_id(request)
+    user_id = user.id
     
     try:
         # Verify access

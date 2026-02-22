@@ -4,22 +4,15 @@ Job management routes.
 
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
+from app.auth import get_current_user, SupabaseUser
 from app.services.job_service import get_job_service
 from app.supabase_client import supabase
 
 
 router = APIRouter(prefix="/jobs", tags=["Jobs"])
-
-
-def _get_user_id(request: Request) -> str:
-    """Extract user ID from request cookies."""
-    user_id = request.cookies.get("user_id")
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    return user_id
 
 
 @router.get("")
@@ -29,11 +22,12 @@ async def list_jobs(
     status: Optional[str] = None,
     limit: int = 20,
     offset: int = 0,
+    user: SupabaseUser = Depends(get_current_user),
 ):
     """
     List jobs for the user's repositories.
     """
-    user_id = _get_user_id(request)
+    user_id = user.id
     
     try:
         # Get user's organizations
@@ -70,11 +64,15 @@ async def list_jobs(
 
 
 @router.get("/{job_id}")
-async def get_job(request: Request, job_id: str):
+async def get_job(
+    request: Request,
+    job_id: str,
+    user: SupabaseUser = Depends(get_current_user),
+):
     """
     Get job details.
     """
-    user_id = _get_user_id(request)
+    user_id = user.id
     
     try:
         job_service = get_job_service()
@@ -106,11 +104,16 @@ async def get_job(request: Request, job_id: str):
 
 
 @router.get("/{job_id}/logs")
-async def get_job_logs(request: Request, job_id: str, limit: int = 100):
+async def get_job_logs(
+    request: Request,
+    job_id: str,
+    limit: int = 100,
+    user: SupabaseUser = Depends(get_current_user),
+):
     """
     Get job logs.
     """
-    user_id = _get_user_id(request)
+    user_id = user.id
     
     try:
         job_service = get_job_service()
@@ -145,11 +148,15 @@ async def get_job_logs(request: Request, job_id: str, limit: int = 100):
 
 
 @router.delete("/{job_id}")
-async def cancel_job(request: Request, job_id: str):
+async def cancel_job(
+    request: Request,
+    job_id: str,
+    user: SupabaseUser = Depends(get_current_user),
+):
     """
     Cancel a queued job.
     """
-    user_id = _get_user_id(request)
+    user_id = user.id
     
     try:
         job_service = get_job_service()
@@ -184,12 +191,13 @@ async def cancel_job(request: Request, job_id: str):
 
 
 @router.get("/queue/stats")
-async def get_queue_stats(request: Request):
+async def get_queue_stats(
+    request: Request,
+    user: SupabaseUser = Depends(get_current_user),
+):
     """
     Get job queue statistics.
     """
-    user_id = _get_user_id(request)
-    
     try:
         job_service = get_job_service()
         

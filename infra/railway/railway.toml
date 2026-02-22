@@ -11,10 +11,10 @@ dockerfilePath = "Dockerfile"
 main = true
 
 # ==============================================================================
-# Service: autodevops-api (FastAPI Backend)
+# Service: AI-SAAS-1 (FastAPI Backend)
 # ==============================================================================
 [[services]]
-name = "autodevops-api"
+name = "AI-SAAS-1"
 source = "."
 
 [services.build]

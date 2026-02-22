@@ -5,9 +5,10 @@ Analysis routes for repository analysis operations.
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
+from app.auth import get_current_user, SupabaseUser
 from app.ai.provider import AnalysisRequest
 from app.ai.router import get_ai_router
 from app.services.analysis_service import get_analysis_service
@@ -33,20 +34,16 @@ class AnalysisResponse(BaseModel):
     created_at: str
 
 
-def _get_user_id(request: Request) -> str:
-    """Extract user ID from request cookies."""
-    user_id = request.cookies.get("user_id")
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    return user_id
-
-
 @router.post("")
-async def create_analysis(request: Request, data: AnalysisCreate):
+async def create_analysis(
+    request: Request,
+    data: AnalysisCreate,
+    user: SupabaseUser = Depends(get_current_user),
+):
     """
     Trigger a new repository analysis.
     """
-    user_id = _get_user_id(request)
+    user_id = user.id
     
     try:
         # Verify repository access
@@ -98,11 +95,15 @@ async def create_analysis(request: Request, data: AnalysisCreate):
 
 
 @router.get("/{analysis_id}")
-async def get_analysis(request: Request, analysis_id: str):
+async def get_analysis(
+    request: Request,
+    analysis_id: str,
+    user: SupabaseUser = Depends(get_current_user),
+):
     """
     Get analysis details and results.
     """
-    user_id = _get_user_id(request)
+    user_id = user.id
     
     try:
         analysis_service = get_analysis_service()
@@ -138,11 +139,12 @@ async def get_recommendations(
     analysis_id: str,
     category: Optional[str] = None,
     severity: Optional[str] = None,
+    user: SupabaseUser = Depends(get_current_user),
 ):
     """
     Get recommendations from an analysis.
     """
-    user_id = _get_user_id(request)
+    user_id = user.id
     
     try:
         analysis_service = get_analysis_service()
@@ -181,11 +183,15 @@ async def get_recommendations(
 
 
 @router.get("/{analysis_id}/remediations")
-async def get_remediations(request: Request, analysis_id: str):
+async def get_remediations(
+    request: Request,
+    analysis_id: str,
+    user: SupabaseUser = Depends(get_current_user),
+):
     """
     Get remediation snippets from an analysis.
     """
-    user_id = _get_user_id(request)
+    user_id = user.id
     
     try:
         analysis_service = get_analysis_service()
@@ -225,11 +231,12 @@ async def list_repository_analyses(
     repository_id: str,
     limit: int = 10,
     offset: int = 0,
+    user: SupabaseUser = Depends(get_current_user),
 ):
     """
     List analyses for a repository.
     """
-    user_id = _get_user_id(request)
+    user_id = user.id
     
     try:
         # Verify access
@@ -268,11 +275,12 @@ async def apply_remediation(
     request: Request,
     analysis_id: str,
     remediation_id: str,
+    user: SupabaseUser = Depends(get_current_user),
 ):
     """
     Apply a remediation (simulation mode - does not actually modify files).
     """
-    user_id = _get_user_id(request)
+    user_id = user.id
     
     try:
         analysis_service = get_analysis_service()

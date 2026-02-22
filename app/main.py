@@ -14,7 +14,6 @@ from fastapi.exceptions import RequestValidationError
 
 from app.config import settings
 from app.routers import (
-    auth_router,
     repositories_router,
     analysis_router,
     jobs_router,
@@ -70,7 +69,10 @@ AutoDevOps AI Platform - Intelligent repository analysis and CI/CD automation.
 
 ## Authentication
 
-This API uses GitHub OAuth for authentication. Use the `/auth/github` endpoint to initiate the OAuth flow.
+This API uses Supabase Authentication. The frontend handles GitHub OAuth via Supabase Auth.
+Include the Supabase access token in the Authorization header as a Bearer token for all API requests.
+
+Example: `Authorization: Bearer <your_supabase_access_token>`
         """,
         docs_url="/docs" if settings.is_development() else None,
         redoc_url="/redoc" if settings.is_development() else None,
@@ -78,10 +80,11 @@ This API uses GitHub OAuth for authentication. Use the `/auth/github` endpoint t
     )
     
     # Configure CORS
+    # Note: allow_credentials=False since we're using Bearer token auth, not cookies
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins_list,
-        allow_credentials=True,
+        allow_credentials=False,
         allow_methods=["*"],
         allow_headers=["*"],
     )
@@ -124,7 +127,6 @@ This API uses GitHub OAuth for authentication. Use the `/auth/github` endpoint t
         )
     
     # Include routers
-    app.include_router(auth_router)
     app.include_router(repositories_router)
     app.include_router(analysis_router)
     app.include_router(jobs_router)

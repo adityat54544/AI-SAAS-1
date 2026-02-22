@@ -5,9 +5,10 @@ Repository management routes.
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
+from app.auth import get_current_user, SupabaseUser
 from app.services.github_service import get_github_service
 from app.supabase_client import supabase
 
@@ -46,14 +47,6 @@ class HealthResponse(BaseModel):
     dependencies_score: float
 
 
-def _get_user_id(request: Request) -> str:
-    """Extract user ID from request cookies."""
-    user_id = request.cookies.get("session")  # Fixed: matches cookie name set in auth.py
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    return user_id
-
-
 async def _get_user_token(user_id: str) -> tuple[str, str]:
     """Get decrypted GitHub token for user."""
     token_response = supabase.table("github_tokens").select("*").eq("user_id", user_id).limit(1).execute()
@@ -71,11 +64,14 @@ async def _get_user_token(user_id: str) -> tuple[str, str]:
 
 
 @router.get("")
-async def list_repositories(request: Request):
+async def list_repositories(
+    request: Request,
+    user: SupabaseUser = Depends(get_current_user),
+):
     """
     List connected repositories for the user's organizations.
     """
-    user_id = _get_user_id(request)
+    user_id = user.id
     
     try:
         # Get user's organizations
@@ -104,11 +100,16 @@ async def list_repositories(request: Request):
 
 
 @router.get("/github")
-async def list_github_repositories(request: Request, page: int = 1, per_page: int = 30):
+async def list_github_repositories(
+    request: Request,
+    page: int = 1,
+    per_page: int = 30,
+    user: SupabaseUser = Depends(get_current_user),
+):
     """
     List repositories from GitHub for connection.
     """
-    user_id = _get_user_id(request)
+    user_id = user.id
     
     try:
         access_token, org_id = await _get_user_token(user_id)
@@ -137,11 +138,15 @@ async def list_github_repositories(request: Request, page: int = 1, per_page: in
 
 
 @router.post("/connect")
-async def connect_repository(request: Request, data: RepositoryConnect):
+async def connect_repository(
+    request: Request,
+    data: RepositoryConnect,
+    user: SupabaseUser = Depends(get_current_user),
+):
     """
     Connect a GitHub repository to the platform.
     """
-    user_id = _get_user_id(request)
+    user_id = user.id
     
     try:
         access_token, user_org_id = await _get_user_token(user_id)
@@ -213,11 +218,15 @@ async def connect_repository(request: Request, data: RepositoryConnect):
 
 
 @router.delete("/{repository_id}")
-async def disconnect_repository(request: Request, repository_id: str):
+async def disconnect_repository(
+    request: Request,
+    repository_id: str,
+    user: SupabaseUser = Depends(get_current_user),
+):
     """
     Disconnect a repository from the platform.
     """
-    user_id = _get_user_id(request)
+    user_id = user.id
     
     try:
         # Get repository and verify ownership
@@ -260,11 +269,15 @@ async def disconnect_repository(request: Request, repository_id: str):
 
 
 @router.get("/{repository_id}")
-async def get_repository(request: Request, repository_id: str):
+async def get_repository(
+    request: Request,
+    repository_id: str,
+    user: SupabaseUser = Depends(get_current_user),
+):
     """
     Get repository details.
     """
-    user_id = _get_user_id(request)
+    user_id = user.id
     
     try:
         repo_response = (
@@ -293,11 +306,15 @@ async def get_repository(request: Request, repository_id: str):
 
 
 @router.get("/{repository_id}/health")
-async def get_repository_health(request: Request, repository_id: str):
+async def get_repository_health(
+    request: Request,
+    repository_id: str,
+    user: SupabaseUser = Depends(get_current_user),
+):
     """
     Get repository health score.
     """
-    user_id = _get_user_id(request)
+    user_id = user.id
     
     try:
         # Verify access
@@ -328,11 +345,15 @@ async def get_repository_health(request: Request, repository_id: str):
 
 
 @router.post("/{repository_id}/sync")
-async def sync_repository(request: Request, repository_id: str):
+async def sync_repository(
+    request: Request,
+    repository_id: str,
+    user: SupabaseUser = Depends(get_current_user),
+):
     """
     Sync repository metadata from GitHub.
     """
-    user_id = _get_user_id(request)
+    user_id = user.id
     
     try:
         # Get repository and verify ownership
