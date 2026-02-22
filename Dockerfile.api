@@ -45,7 +45,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY --chown=appuser:appuser app/ ./app/
 COPY --chown=appuser:appuser requirements.txt .
 
-# Set environment variables
+# Set environment variables - Railway sets PORT dynamically
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     ENVIRONMENT=production \
@@ -54,12 +54,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Switch to non-root user
 USER appuser
 
-# Expose port
-EXPOSE 8000
+# Expose port dynamically
+EXPOSE ${PORT:-8000}
 
-# Health check
+# Health check using dynamic port
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
 
-# Run the application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+# Run the application with gunicorn for production ( Railway compatible)
+CMD ["gunicorn", "app.main:app", "--bind", "0.0.0.0:${PORT:-8000}", "--workers", "2", "--worker-class", "uvicorn.workers.UvicornWorker"]
