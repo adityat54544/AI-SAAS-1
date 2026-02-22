@@ -1,0 +1,110 @@
+{
+  "timestamp": "2026-02-22T20:06:00+05:30",
+  "migration_type": "Vercel/Railway to Coolify",
+  "project": "AutoDevOps AI Platform",
+  "status": "READY_FOR_DEPLOYMENT",
+  "summary": {
+    "artifacts_removed": 6,
+    "artifacts_added": 5,
+    "files_modified": 4
+  },
+  "removed_artifacts": {
+    "vercel": [
+      "frontend/.vercel/",
+      "frontend/vercel.json",
+      "vercel-patch.json"
+    ],
+    "railway": [
+      "railway.toml",
+      "frontend/railway.toml",
+      "DEPLOYMENT_REPORT.md"
+    ]
+  },
+  "added_artifacts": {
+    "dockerfiles": [
+      "frontend/Dockerfile",
+      "frontend/.dockerignore",
+      "Dockerfile.coolify"
+    ],
+    "configuration": [
+      "docker-compose.coolify.yml"
+    ],
+    "documentation": [
+      "docs/coolify_deployment.md"
+    ]
+  },
+  "modified_files": [
+    ".env.example",
+    ".gitignore",
+    "frontend/next.config.js",
+    "Dockerfile.api"
+  ],
+  "services": {
+    "frontend": {
+      "name": "autodevops-frontend",
+      "framework": "Next.js 14.2.0",
+      "output_mode": "standalone",
+      "port": 3000,
+      "health_check": "GET /",
+      "dockerfile": "frontend/Dockerfile"
+    },
+    "backend": {
+      "name": "autodevops-api",
+      "framework": "FastAPI (Python 3.11)",
+      "port": 8000,
+      "health_check": "GET /health",
+      "dockerfile": "Dockerfile.coolify"
+    },
+    "redis": {
+      "name": "autodevops-redis",
+      "image": "redis:7-alpine",
+      "port": 6379,
+      "health_check": "redis-cli ping"
+    }
+  },
+  "environment_variables": {
+    "backend": {
+      "required": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ANON_KEY",
+        "GEMINI_API_KEY",
+        "REDIS_URL",
+        "ENCRYPTION_KEY",
+        "CORS_ORIGINS",
+        "FRONTEND_URL"
+      ],
+      "optional": [
+        "GITHUB_WEBHOOK_SECRET",
+        "SENTRY_DSN"
+      ]
+    },
+    "frontend": {
+      "build_args": [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        "NEXT_PUBLIC_API_URL"
+      ],
+      "runtime_env": [
+        "NODE_ENV",
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        "NEXT_PUBLIC_API_URL"
+      ]
+    }
+  },
+  "next_steps": [
+    "1. Push changes to GitHub: git push origin main",
+    "2. Install Coolify on Ubuntu VPS: curl -fsSL https://cdn.coollabs.io/coolify/install.sh | bash",
+    "3. Connect GitHub repository to Coolify",
+    "4. Create services (frontend, backend, redis) in Coolify dashboard",
+    "5. Configure environment variables in Coolify",
+    "6. Deploy services and verify health checks",
+    "7. Configure domains and SSL certificates"
+  ],
+  "rollback_instructions": {
+    "via_coolify": "Navigate to Service > Deployments > Select previous deployment > Click Rollback",
+    "via_cli": "git revert HEAD && git push origin main"
+  },
+  "redeploy_command": "git checkout <tag-or-commit> && git push origin main"
+}

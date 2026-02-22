@@ -1,0 +1,88 @@
+{
+  "timestamp": "2026-02-22T19:54:00+05:30",
+  "project_name": "AutoDevOps AI Platform",
+  "repository_url": "https://github.com/adityat54544/AI-SAAS-1.git",
+  "analysis": {
+    "frontend": {
+      "framework": "Next.js 14.2.0",
+      "path": "frontend/",
+      "current_deployment": "Vercel",
+      "has_standalone_output": false,
+      "node_version": "18.x recommended"
+    },
+    "backend": {
+      "framework": "FastAPI (Python 3.11)",
+      "path": "app/",
+      "current_deployment": "Railway",
+      "entry_point": "app.main:app"
+    },
+    "workers": {
+      "framework": "BullMQ/Node.js",
+      "path": "workers/",
+      "dockerfile": "Dockerfile.worker"
+    }
+  },
+  "vercel_artifacts": {
+    "directories": [
+      "frontend/.vercel/"
+    ],
+    "files": [
+      "docs/vercel_deployment_report.md",
+      "frontend/.vercel/.env.development.local"
+    ],
+    "documentation_references": [
+      "docs/CLI_CONTROL_REFERENCE.md (Vercel CLI commands)",
+      "README.md (Vercel deployment instructions)"
+    ],
+    "node_modules_vendors": [
+      "frontend/node_modules/next/dist/compiled/@vercel/*"
+    ]
+  },
+  "railway_artifacts": {
+    "files": [
+      "infra/railway/railway.toml"
+    ]
+  },
+  "dockerfiles": {
+    "existing": [
+      "Dockerfile (basic backend)",
+      "Dockerfile.api (optimized backend for Railway)",
+      "Dockerfile.worker",
+      "Dockerfile.cron"
+    ],
+    "missing": [
+      "frontend/Dockerfile (for Coolify deployment)"
+    ]
+  },
+  "environment_variables": {
+    "backend": [
+      "SUPABASE_URL",
+      "SUPABASE_SERVICE_ROLE_KEY",
+      "SUPABASE_ANON_KEY",
+      "GEMINI_API_KEY",
+      "REDIS_URL",
+      "ENCRYPTION_KEY",
+      "GITHUB_WEBHOOK_SECRET",
+      "CORS_ORIGINS",
+      "FRONTEND_URL"
+    ],
+    "frontend": [
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "NEXT_PUBLIC_API_URL"
+    ]
+  },
+  "secrets_detected": {
+    "env_files": [
+      ".env (exists locally, gitignored)",
+      "frontend/.vercel/.env.development.local (should be removed)"
+    ],
+    "baseline_file": ".secrets.baseline exists"
+  },
+  "migration_required": {
+    "remove_vercel": true,
+    "remove_railway": true,
+    "create_frontend_dockerfile": true,
+    "setup_coolify": true
+  }
+}

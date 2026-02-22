@@ -1,0 +1,109 @@
+{
+  "timestamp": "2026-02-22T20:07:00+05:30",
+  "report_type": "Security Migration Report",
+  "project": "AutoDevOps AI Platform",
+  "migration_status": "COMPLETED",
+  "security_changes": {
+    "vercel_artifacts_removed": {
+      "files": [
+        "frontend/.vercel/ (directory with env file)",
+        "frontend/vercel.json",
+        "vercel-patch.json"
+      ],
+      "risk_mitigated": "Removed Vercel-specific configuration that could expose deployment details"
+    },
+    "railway_artifacts_removed": {
+      "files": [
+        "railway.toml",
+        "frontend/railway.toml"
+      ],
+      "risk_mitigated": "Removed Railway-specific configuration that could expose infrastructure details"
+    },
+    "secrets_handling": {
+      "local_env_files": ".env files remain gitignored",
+      "env_example_updated": "Removed Vercel/Railway references",
+      "secrets_inventory_created": "secrets_inventory.json (key names only, no values)"
+    },
+    "gitignore_updates": {
+      "added_patterns": [
+        ".vercel/",
+        "vercel.json",
+        ".vercelignore",
+        "infra/railway/",
+        "repo_analysis.json",
+        "secrets_inventory.json",
+        "deployment_report.json",
+        "security_migration_report.json"
+      ],
+      "purpose": "Prevent accidental commit of platform-specific and migration files"
+    }
+  },
+  "environment_variables_security": {
+    "backend": {
+      "service": "autodevops-api",
+      "secrets_to_configure_in_coolify": [
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ANON_KEY",
+        "GEMINI_API_KEY",
+        "REDIS_URL",
+        "ENCRYPTION_KEY",
+        "GITHUB_WEBHOOK_SECRET"
+      ],
+      "config_vars": [
+        "CORS_ORIGINS",
+        "FRONTEND_URL",
+        "ENVIRONMENT"
+      ]
+    },
+    "frontend": {
+      "service": "autodevops-frontend",
+      "build_time_vars": [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        "NEXT_PUBLIC_API_URL"
+      ],
+      "note": "NEXT_PUBLIC_* variables are embedded at build time and visible in browser"
+    }
+  },
+  "dockerfile_security": {
+    "frontend": {
+      "non_root_user": "nextjs (uid 1001)",
+      "base_image": "node:18-alpine",
+      "health_check": "Enabled"
+    },
+    "backend": {
+      "non_root_user": "appuser",
+      "base_image": "python:3.11-slim",
+      "health_check": "Enabled",
+      "multi_stage_build": "Yes (reduces attack surface)"
+    }
+  },
+  "remaining_risks": [
+    {
+      "risk": "Secrets rotation not performed",
+      "severity": "Medium",
+      "recommendation": "Rotate all API keys and secrets after Coolify deployment"
+    },
+    {
+      "risk": "Git history may contain old secrets",
+      "severity": "Low",
+      "recommendation": "Use git filter-repo or BFG to clean history if secrets were ever committed"
+    },
+    {
+      "risk": "NEXT_PUBLIC_* variables visible in browser",
+      "severity": "Informational",
+      "recommendation": "These are by design public; ensure no sensitive data is in these variables"
+    }
+  ],
+  "recommendations": [
+    "Enable GitHub secret scanning for the repository",
+    "Set up pre-commit hooks to prevent secret commits",
+    "Use Coolify's encrypted environment variable storage",
+    "Enable HTTPS only for all services",
+    "Configure rate limiting in Coolify",
+    "Set up log aggregation for security monitoring"
+  ],
+  "history_scan_command": "git log -p --all -- <file> | grep -E '(password|secret|key|token)'",
+  "bfg_clean_command": "bfg --replace-text passwords.txt && git reflog expire --expire=now --all && git gc --prune=now --aggressive"
+}
