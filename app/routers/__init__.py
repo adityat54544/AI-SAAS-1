@@ -7,6 +7,7 @@ from app.routers.analysis import router as analysis_router
 from app.routers.jobs import router as jobs_router
 from app.routers.webhooks import router as webhooks_router
 from app.routers.ci_cd import router as ci_cd_router
+from app.routers.auth import router as auth_router
 
 __all__ = [
     "repositories_router",
@@ -14,4 +15,5 @@ __all__ = [
     "jobs_router",
     "webhooks_router",
     "ci_cd_router",
+    "auth_router",
 ]

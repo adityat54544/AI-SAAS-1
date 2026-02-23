@@ -3,17 +3,33 @@ import { http, HttpResponse } from 'msw'
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 export const handlers = [
-  // Auth handlers
-  http.get(`${API_URL}/api/auth/user`, () => {
+  // Auth handlers - Backend as single source of truth
+  http.get(`${API_URL}/auth/me`, () => {
     return HttpResponse.json({
       id: 'test-user-id',
       email: 'test@example.com',
-      name: 'Test User',
+      display_name: 'Test User',
+      avatar_url: null,
+      role: 'user',
     })
   }),
 
+  http.get(`${API_URL}/auth/status`, () => {
+    return HttpResponse.json({
+      authenticated: true,
+      user: {
+        id: 'test-user-id',
+        email: 'test@example.com',
+      },
+    })
+  }),
+
+  http.post(`${API_URL}/auth/signout`, () => {
+    return HttpResponse.json({ status: 'signed_out' })
+  }),
+
   // Repositories handlers
-  http.get(`${API_URL}/api/repositories`, () => {
+  http.get(`${API_URL}/repositories`, () => {
     return HttpResponse.json({
       repositories: [
         {
@@ -29,7 +45,7 @@ export const handlers = [
   }),
 
   // Analysis handlers
-  http.post(`${API_URL}/api/analysis`, () => {
+  http.post(`${API_URL}/analysis`, () => {
     return HttpResponse.json({
       id: 'test-analysis-id',
       status: 'pending',
@@ -37,7 +53,7 @@ export const handlers = [
     })
   }),
 
-  http.get(`${API_URL}/api/analysis/:id`, () => {
+  http.get(`${API_URL}/analysis/:id`, () => {
     return HttpResponse.json({
       id: 'test-analysis-id',
       status: 'completed',
@@ -49,7 +65,7 @@ export const handlers = [
   }),
 
   // Jobs handlers
-  http.get(`${API_URL}/api/jobs`, () => {
+  http.get(`${API_URL}/jobs`, () => {
     return HttpResponse.json({
       jobs: [
         {

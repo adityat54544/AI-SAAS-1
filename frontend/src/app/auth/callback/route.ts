@@ -1,60 +1,39 @@
 /**
  * Auth Callback Route Handler
- * Handles OAuth callback from Supabase after GitHub authentication.
- * This route processes the authorization code and exchanges it for a session.
+ * 
+ * NOTE: This route is kept for backwards compatibility.
+ * The actual OAuth callback is now handled by the backend at /auth/callback.
+ * 
+ * The backend:
+ * 1. Receives the OAuth callback from Supabase
+ * 2. Exchanges the authorization code for a session
+ * 3. Sets HttpOnly session cookie
+ * 4. Redirects to frontend /dashboard?auth=success
+ * 
+ * This frontend route just handles post-auth redirect logic.
+ * If auth=success, the AuthProvider will fetch /auth/me to hydrate user state.
  */
 
-import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   
-  const code = searchParams.get('code');
-  const next = searchParams.get('next') ?? '/dashboard';
+  const authStatus = searchParams.get('auth');
+  const error = searchParams.get('error');
 
-  if (code) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      console.error('Missing Supabase environment variables');
-      return NextResponse.redirect(new URL('/dashboard?error=configuration', request.url));
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-    try {
-      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-
-      if (error) {
-        console.error('Auth callback error:', error.message);
-        return NextResponse.redirect(new URL('/dashboard?error=' + encodeURIComponent(error.message), request.url));
-      }
-
-      console.log('Session established successfully:', data.user?.id);
-      
-      // Redirect to dashboard after successful authentication
-      return NextResponse.redirect(new URL(next, request.url));
-    } catch (err) {
-      console.error('Unexpected auth callback error:', err);
-      return NextResponse.redirect(new URL('/dashboard?error=unknown', request.url));
-    }
+  // If there's an auth error, redirect to dashboard with error
+  if (error) {
+    console.error('Auth callback error:', error);
+    return NextResponse.redirect(new URL(`/dashboard?error=${encodeURIComponent(error)}`, request.url));
   }
 
-  // If no code, redirect to dashboard (user may already be logged in or auth was cancelled)
-  return NextResponse.redirect(new URL(next, request.url));
+  // If auth was successful, redirect to dashboard
+  // The AuthProvider will automatically fetch /auth/me to validate session
+  if (authStatus === 'success') {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
+  // Default: redirect to dashboard (AuthProvider will handle validation)
+  return NextResponse.redirect(new URL('/dashboard', request.url));
 }
-</parameter>
-<task_progress>
-- [x] Analyze authentication issue
-- [x] Fix API client with credentials: 'include'
-- [x] Add NEXT_PUBLIC_FRONTEND_URL environment variable
-- [x] Create auth callback route
-- [ ] Update Supabase client configuration
-- [ ] Create vercel.json for CORS headers
-- [ ] Commit and push changes
-- [ ] Verify deployment and authentication flow
-</task_progress>
-</invoke>
-</minimax:tool_call>

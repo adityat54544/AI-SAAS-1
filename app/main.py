@@ -19,6 +19,7 @@ from app.routers import (
     jobs_router,
     webhooks_router,
     ci_cd_router,
+    auth_router,
 )
 
 
@@ -79,12 +80,12 @@ Example: `Authorization: Bearer <your_supabase_access_token>`
         lifespan=lifespan,
     )
     
-    # Configure CORS
-    # Note: allow_credentials=False since we're using Bearer token auth, not cookies
+    # Configure CORS for cross-domain cookies (Vercel ↔ Railway)
+    # Note: allow_credentials=True required for HttpOnly cookie sessions
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins_list,
-        allow_credentials=False,
+        allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
@@ -127,6 +128,7 @@ Example: `Authorization: Bearer <your_supabase_access_token>`
         )
     
     # Include routers
+    app.include_router(auth_router)  # Backend-auth session management
     app.include_router(repositories_router)
     app.include_router(analysis_router)
     app.include_router(jobs_router)

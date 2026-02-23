@@ -1,9 +1,13 @@
 /**
  * API client for making authenticated requests to the backend.
- * Uses Supabase access token for authentication.
+ * Uses HttpOnly cookie-based authentication via credentials: "include".
+ * 
+ * Authentication flow:
+ * 1. Frontend calls /auth/github to initiate OAuth (redirects to backend)
+ * 2. Backend handles OAuth callback and sets HttpOnly session cookie
+ * 3. Frontend calls /auth/me to validate session and get user info
+ * 4. All API calls use credentials: "include" to send cookies
  */
-
-import { getAccessToken } from './supabase';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -13,6 +17,7 @@ interface RequestOptions extends RequestInit {
 
 /**
  * Make an authenticated API request
+ * Uses credentials: "include" to send HttpOnly cookies with cross-origin requests
  * @param endpoint - API endpoint (without base URL)
  * @param options - Fetch options
  * @returns Response data
@@ -28,13 +33,8 @@ async function apiRequest<T = unknown>(
     ...(options.headers as Record<string, string>),
   };
 
-  // Add Authorization header if not skipping auth
-  if (!skipAuth) {
-    const token = await getAccessToken();
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-  }
+  // NOTE: No Authorization header needed - using HttpOnly cookie-based auth
+  // Cookie is automatically sent with credentials: "include"
 
   const url = `${API_URL}${endpoint}`;
 
@@ -42,7 +42,7 @@ async function apiRequest<T = unknown>(
     ...fetchOptions,
     headers,
     mode: 'cors',
-    credentials: 'include',
+    credentials: 'include', // Critical: sends HttpOnly cookies with cross-origin requests
   });
 
   if (!response.ok) {
@@ -106,6 +106,42 @@ export const api = {
 
   delete: <T = unknown>(endpoint: string, options?: RequestOptions) =>
     apiRequest<T>(endpoint, { ...options, method: 'DELETE' }),
+};
+
+/**
+ * Authentication API endpoints
+ * Uses backend as single source of truth for user identity
+ */
+export interface AuthUser {
+  id: string;
+  email: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+  role: string | null;
+}
+
+export const authApi = {
+  /**
+   * Get current authenticated user from backend
+   * This is the single source of truth for frontend identity
+   */
+  me: () => api.get<AuthUser>('/auth/me'),
+  
+  /**
+   * Check authentication status
+   */
+  status: () => api.get<{ authenticated: boolean; user?: { id: string; email: string } }>('/auth/status'),
+  
+  /**
+   * Sign out - clears session cookie
+   */
+  signout: () => api.post<{ status: string }>('/auth/signout'),
+  
+  /**
+   * Initiate GitHub OAuth - redirects to backend
+   * Frontend should redirect to this URL, not fetch it
+   */
+  getGitHubAuthUrl: () => `${API_URL}/auth/github`,
 };
 
 /**
