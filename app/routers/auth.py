@@ -238,22 +238,3 @@ async def auth_status(user: Optional[SupabaseUser] = Depends(get_current_user_op
             "email": user.email,
         }
     }
-</parameter>
-<task_progress>
-- [x] Analyze authentication issue
-- [x] Design target architecture with backend as SSoT
-- [x] Create file-level refactor requirements
-- [x] Define risk matrix and success criteria
-- [x] Finalize architecture decisions (backend OAuth, SameSite=None, big-bang)
-- [x] Create app/routers/auth.py (NEW - backend auth routes)
-- [ ] Modify app/main.py (CORS credentials, router registration)
-- [ ] Modify app/routers/__init__.py (export auth_router)
-- [ ] Verify app/config.py (frontend_url)
-- [ ] Modify frontend/src/lib/api.ts (add authApi, remove token headers)
-- [ ] Rewrite frontend/src/lib/auth-context.tsx (backend /me authority)
-- [ ] Simplify frontend/src/lib/supabase.ts (OAuth only)
-- [ ] Simplify frontend/src/app/auth/callback/route.ts
-- [ ] Update test mocks
-- [ ] Validate and test
-</task_progress>
-</invoke>
