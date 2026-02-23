@@ -1,0 +1,51 @@
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Credentials",
+          "value": "true"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Authorization, Content-Type, X-Client-Info"
+        }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Credentials",
+          "value": "true"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    }
+  ]
+}
+</parameter>
+<task_progress>
+- [x] Analyze authentication issue
+- [x] Fix API client with credentials: 'include'
+- [x] Add NEXT_PUBLIC_FRONTEND_URL environment variable
+- [x] Create auth callback route
+- [x] Update Supabase client configuration
+- [x] Create vercel.json for CORS headers
+- [ ] Commit and push changes
+- [ ] Verify deployment and authentication flow
+</task_progress>
+</invoke>
+</minimax:tool_call>
