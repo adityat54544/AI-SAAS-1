@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "validate": "ts-node --project tsconfig.json scripts/startup-validation.ts",
+    "validate:ci": "ts-node --project tsconfig.json scripts/startup-validation.ts",
+    "prebuild": "npm run validate:ci"
   },
   "dependencies": {
     "next": "^14.2.0",
@@ -38,6 +41,7 @@
     "@types/react": "^18.3.2",
     "@types/react-dom": "^18.3.0",
     "@types/diff": "^5.2.0",
+    "ts-node": "^10.9.2",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.0",
     "prettier": "^3.2.5",

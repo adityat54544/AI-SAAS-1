@@ -5,6 +5,15 @@ const nextConfig = {
   // Enable standalone output for Docker deployment (Coolify)
   output: 'standalone',
   
+  // Webpack configuration for path aliases
+  webpack: (config, { isServer }) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': require('path').resolve(__dirname, 'src'),
+    };
+    return config;
+  },
+  
   // Environment variables exposed to the browser
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',

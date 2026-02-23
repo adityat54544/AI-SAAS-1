@@ -1,0 +1,129 @@
+# INFRA GUARDIAN - Scheduled Health Checks
+# Runs every 5 minutes to check service health
+
+name: Guardian Health Check
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Every 5 minutes
+  workflow_dispatch:  # Manual trigger
+  repository_dispatch:
+    types: [health_check]
+
+env:
+  API_URL: ${{ secrets.API_URL || 'https://ai-saas-1-production.up.railway.app' }}
+  FRONTEND_URL: ${{ secrets.FRONTEND_URL || 'https://autodevops.ai' }}
+
+jobs:
+  health-check:
+    name: System Health Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check API Health
+        run: |
+          echo "Checking API health..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" $API_URL/health || echo "000")
+          if [ "$response" = "200" ]; then
+            echo "✅ API is healthy"
+          else
+            echo "❌ API health check failed (HTTP $response)"
+            exit 1
+          fi
+      
+      - name: Check Frontend Health
+        run: |
+          echo "Checking Frontend health..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" $FRONTEND_URL/healthz || echo "000")
+          if [ "$response" = "200" ]; then
+            echo "✅ Frontend is healthy"
+          else
+            echo "⚠️ Frontend health check returned HTTP $response"
+          fi
+      
+      - name: Check API Readiness (Database + Redis)
+        run: |
+          echo "Checking API readiness..."
+          response=$(curl -s $API_URL/ready || echo '{"ready": false}')
+          echo "Readiness: $response"
+          if echo "$response" | grep -q '"ready":true'; then
+            echo "✅ API is ready (DB + Redis connected)"
+          else
+            echo "⚠️ API readiness check indicates issues"
+          fi
+      
+      - name: Measure Response Time
+        run: |
+          echo "Measuring response time..."
+          start=$(date +%s%N)
+          curl -s -o /dev/null $API_URL/health
+          end=$(date +%s%N)
+          ms=$(( (end - start) / 1000000 ))
+          echo "Response time: ${ms}ms"
+          if [ $ms -lt 1000 ]; then
+            echo "✅ Response time is acceptable"
+          else
+            echo "⚠️ Response time is high (${ms}ms)"
+          fi
+
+  monitor-railway:
+    name: Railway Service Monitor
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+      
+      - name: Link to project
+        run: |
+          echo "${{ secrets.RAILWAY_TOKEN }}" > railway_token.txt
+          railway login --token-file=railway_token.txt
+          railway link nurturing-enjoyment || echo "Link skipped"
+      
+      - name: Get service status
+        run: |
+          echo "Checking Railway services..."
+          railway list services || echo "Could not list services"
+      
+      - name: Check recent deployments
+        run: |
+          echo "Checking recent deployments..."
+          # This would show deployment status in production
+
+  alert-on-failure:
+    name: Alert on Critical Failure
+    runs-on: ubuntu-latest
+    needs: [health-check]
+    if: failure()
+    
+    steps:
+      - name: Send Alert (Slack/Discord placeholder)
+        run: |
+          echo "⚠️ Health check failed! Notification would be sent here."
+          # In production, integrate with Slack/Discord/PagerDuty
+          # Example:
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data '{"text":"🚨 ALERT: AutoDevOps Health Check Failed"}' \
+          #   ${{ secrets.SLACK_WEBHOOK_URL }}
+      
+      - name: Create GitHub Issue for Failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 Health Check Failed - ' + new Date().toISOString(),
+              body: 'Automated health check has detected service issues.\n\n' +
+                    '**Time:** ' + new Date().toISOString() + '\n' +
+                    '**Action Required:** Investigate and resolve the issue.\n\n' +
+                    '_This issue was created automatically by INFRA GUARDIAN._',
+              labels: ['infra-guardian', 'automated-alert']
+            })
