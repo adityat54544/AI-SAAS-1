@@ -2,8 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   
-  // Enable standalone output for Docker deployment (Coolify)
-  output: 'standalone',
+  // Only use standalone output for Docker/Coolify deployments, NOT for Vercel
+  ...(process.env.VERCEL !== '1' && { output: 'standalone' }),
   
   // Webpack configuration for path aliases
   webpack: (config, { isServer }) => {
