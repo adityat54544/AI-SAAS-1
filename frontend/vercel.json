@@ -9,7 +9,7 @@
         },
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "https://ai-saas-1-production.up.railway.app"
+          "value": "https://apiautodevops.up.railway.app"
         },
         {
           "key": "Access-Control-Allow-Methods",
@@ -30,7 +30,7 @@
         },
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "https://ai-saas-1-production.up.railway.app"
+          "value": "https://apiautodevops.up.railway.app"
         }
       ]
     }
