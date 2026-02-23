@@ -9,7 +9,7 @@
         },
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "*"
+          "value": "https://ai-saas-1-production.up.railway.app"
         },
         {
           "key": "Access-Control-Allow-Methods",
@@ -17,7 +17,7 @@
         },
         {
           "key": "Access-Control-Allow-Headers",
-          "value": "Authorization, Content-Type, X-Client-Info"
+          "value": "Authorization, Content-Type, X-Client-Info, Cookie"
         }
       ]
     },
@@ -30,22 +30,9 @@
         },
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "*"
+          "value": "https://ai-saas-1-production.up.railway.app"
         }
       ]
     }
   ]
 }
-</parameter>
-<task_progress>
-- [x] Analyze authentication issue
-- [x] Fix API client with credentials: 'include'
-- [x] Add NEXT_PUBLIC_FRONTEND_URL environment variable
-- [x] Create auth callback route
-- [x] Update Supabase client configuration
-- [x] Create vercel.json for CORS headers
-- [ ] Commit and push changes
-- [ ] Verify deployment and authentication flow
-</task_progress>
-</invoke>
-</minimax:tool_call>

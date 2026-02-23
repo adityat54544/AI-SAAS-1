@@ -27,6 +27,12 @@ ENVIRONMENT = "production"
 APP_NAME = "AutoDevOps AI Platform"
 PORT = "8000"
 
+# Frontend URL for OAuth redirects
+FRONTEND_URL = "https://aditya-tiwari-projects-f3858565.vercel.app"
+
+# CORS origins - include Vercel frontend
+CORS_ORIGINS = "http://localhost:3000,http://localhost:8000,https://aditya-tiwari-projects-f3858565.vercel.app,https://ai-saas-1-production.up.railway.app"
+
 # AI Configuration
 AI_MODEL_DEFAULT = "gemini-1.5-flash"
 AI_MAX_TOKENS_PER_TASK = "32000"

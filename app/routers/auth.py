@@ -19,7 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
-from app.auth import get_current_user, SupabaseUser
+from app.auth import get_current_user_from_cookie, get_current_user_optional, SupabaseUser
 from app.config import settings
 from app.supabase_client import supabase
 
@@ -42,7 +42,7 @@ COOKIE_MAX_AGE = 60 * 60 * 24 * 7  # 7 days
 
 
 @router.get("/me", response_model=UserResponse)
-async def get_me(user: SupabaseUser = Depends(get_current_user)):
+async def get_me(user: SupabaseUser = Depends(get_current_user_from_cookie)):
     """
     Get current authenticated user.
     
@@ -200,7 +200,7 @@ async def auth_callback(request: Request, code: Optional[str] = None):
 
 
 @router.post("/signout")
-async def signout(request: Request, user: SupabaseUser = Depends(get_current_user)):
+async def signout(request: Request, user: SupabaseUser = Depends(get_current_user_from_cookie)):
     """
     Sign out user by clearing session cookies.
     
@@ -221,7 +221,7 @@ async def signout(request: Request, user: SupabaseUser = Depends(get_current_use
 
 
 @router.get("/status")
-async def auth_status(user: Optional[SupabaseUser] = Depends(get_current_user)):
+async def auth_status(user: Optional[SupabaseUser] = Depends(get_current_user_optional)):
     """
     Check authentication status.
     

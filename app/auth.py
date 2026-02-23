@@ -1,6 +1,6 @@
 """
 Supabase token validation for FastAPI routes.
-Validates Bearer tokens by calling Supabase Auth API.
+Validates Bearer tokens and HttpOnly cookies by calling Supabase Auth API.
 """
 
 import httpx
@@ -132,22 +132,53 @@ async def get_current_user(
     return await validate_supabase_token(credentials.credentials)
 
 
+async def get_current_user_from_cookie(
+    request: Request,
+) -> SupabaseUser:
+    """
+    FastAPI dependency to get the current authenticated user from HttpOnly cookie.
+    
+    This is the primary authentication method for frontend integration.
+    Reads the session_token cookie set by /auth/callback endpoint.
+    
+    Returns:
+        SupabaseUser: The authenticated user.
+    
+    Raises:
+        HTTPException: If not authenticated.
+    """
+    # Read session token from cookie
+    session_token = request.cookies.get("session_token")
+    
+    if not session_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    return await validate_supabase_token(session_token)
+
+
 async def get_current_user_optional(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    request: Request,
 ) -> Optional[SupabaseUser]:
     """
-    FastAPI dependency to optionally get the current authenticated user.
+    FastAPI dependency to optionally get the current authenticated user from cookie.
     
     Returns None if not authenticated, instead of raising an exception.
+    This is useful for optional authentication on public endpoints.
     
     Returns:
         Optional[SupabaseUser]: The authenticated user or None.
     """
-    if credentials is None:
+    session_token = request.cookies.get("session_token")
+    
+    if not session_token:
         return None
     
     try:
-        return await validate_supabase_token(credentials.credentials)
+        return await validate_supabase_token(session_token)
     except HTTPException:
         return None
 
