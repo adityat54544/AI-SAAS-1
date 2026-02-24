@@ -239,6 +239,7 @@ export interface Repository {
   language: string | null;
   html_url: string;
   stargazers_count: number;
+  forks_count: number;
   is_private: boolean;
   last_analyzed_at: string | null;
 }
@@ -261,6 +262,7 @@ export interface Recommendation {
   severity: string;
   title: string;
   description: string;
+  suggested_fix?: string;
   file_path?: string;
   line_number?: number;
   created_at: string;

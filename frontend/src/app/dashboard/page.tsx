@@ -1,12 +1,20 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { Github, RefreshCw, BarChart3, Shield, Zap, GitBranch, LogOut } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Github, RefreshCw, BarChart3, Shield, Zap, GitBranch, LogOut, Settings, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { repositoriesApi, Repository } from '@/lib/api';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Skeleton, StatsCardSkeleton } from '@/components/ui/skeleton';
+import { StaggerContainer, StaggerItem } from '@/components/animated-layout';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { user, isLoading: authLoading, isAuthenticated, signIn, signOut } = useAuth();
 
   const { data, isLoading: reposLoading, error, refetch } = useQuery({
@@ -21,8 +29,12 @@ export default function DashboardPage() {
   // Show loading state while checking authentication
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          className="w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full"
+        />
       </div>
     );
   }
@@ -30,21 +42,33 @@ export default function DashboardPage() {
   // Show login prompt if not authenticated
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center max-w-md mx-auto p-8">
-          <Github className="w-16 h-16 text-gray-400 mx-auto mb-6" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Welcome to AutoDevOps AI</h2>
-          <p className="text-gray-600 mb-6">
-            Connect your GitHub account to start analyzing and improving your repositories.
-          </p>
-          <button
-            onClick={() => signIn()}
-            className="btn btn-primary inline-flex items-center gap-2 px-6 py-3"
-          >
-            <Github className="w-5 h-5" />
-            Connect with GitHub
-          </button>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Card className="max-w-md" hover animation="lift">
+            <CardContent className="pt-8 pb-8 text-center">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
+                className="w-20 h-20 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center mx-auto mb-6"
+              >
+                <Sparkles className="w-10 h-10 text-primary-600 dark:text-primary-400" />
+              </motion.div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Welcome to AutoDevOps AI</h2>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
+                Connect your GitHub account to start analyzing and improving your repositories.
+              </p>
+              <Button size="lg" onClick={() => signIn()} className="gap-2">
+                <Github className="w-5 h-5" />
+                Connect with GitHub
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     );
   }
@@ -52,188 +76,248 @@ export default function DashboardPage() {
   // Show error state
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Error Loading Dashboard</h2>
-          <p className="text-gray-600 mb-4">
-            {error instanceof Error ? error.message : 'An error occurred while loading your data.'}
-          </p>
-          <button
-            onClick={() => refetch()}
-            className="btn btn-primary"
-          >
-            Try Again
-          </button>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Card hover animation="lift">
+            <CardContent className="pt-8 pb-8 text-center">
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Shield className="w-8 h-8 text-red-600 dark:text-red-400" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Error Loading Dashboard</h2>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
+                {error instanceof Error ? error.message : 'An error occurred while loading your data.'}
+              </p>
+              <Button onClick={() => refetch()}>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Try Again
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white shadow">
+      <motion.header
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold text-gray-900">AutoDevOps AI</h1>
-              {user?.email && (
-                <span className="text-sm text-gray-500">{user.email}</span>
-              )}
+              <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
+                <Sparkles className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">AutoDevOps AI</h1>
+                {user?.email && (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-4">
-              <button
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => refetch()}
-                className="btn btn-secondary inline-flex items-center gap-2"
+                className="hidden sm:flex"
               >
-                <RefreshCw className="w-4 h-4" />
-                Refresh
-              </button>
-              <button
-                onClick={() => signIn()}
-                className="btn btn-primary inline-flex items-center gap-2"
+                <RefreshCw className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                asChild
+                className="hidden sm:flex"
               >
-                <Github className="w-5 h-5" />
-                Connect Repository
-              </button>
-              <button
-                onClick={signOut}
-                className="btn btn-secondary inline-flex items-center gap-2"
-                title="Sign out"
+                <Link href="/settings">
+                  <Settings className="h-5 w-5" />
+                </Link>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => signOut()}
+                size="sm"
+                className="gap-2"
               >
-                <LogOut className="w-4 h-4" />
-                Sign Out
-              </button>
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Sign Out</span>
+              </Button>
             </div>
           </div>
         </div>
-      </header>
+      </motion.header>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="card">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-primary-100 text-primary-600">
-                <GitBranch className="w-6 h-6" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Repositories</p>
-                <p className="text-2xl font-semibold text-gray-900">{repositories.length}</p>
-              </div>
-            </div>
-          </div>
-          <div className="card">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-green-100 text-green-600">
-                <Shield className="w-6 h-6" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Avg Security</p>
-                <p className="text-2xl font-semibold text-gray-900">--</p>
-              </div>
-            </div>
-          </div>
-          <div className="card">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-yellow-100 text-yellow-600">
-                <Zap className="w-6 h-6" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Avg Performance</p>
-                <p className="text-2xl font-semibold text-gray-900">--</p>
-              </div>
-            </div>
-          </div>
-          <div className="card">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-purple-100 text-purple-600">
-                <BarChart3 className="w-6 h-6" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Total Analyses</p>
-                <p className="text-2xl font-semibold text-gray-900">--</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Repository List */}
-        <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Connected Repositories</h2>
-          
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-            </div>
-          ) : repositories.length === 0 ? (
-            <div className="text-center py-12">
-              <Github className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No repositories connected</h3>
-              <p className="text-gray-500 mb-4">
-                Connect your GitHub repositories to start analyzing and improving your code.
-              </p>
-              <button
-                onClick={() => signIn()}
-                className="btn btn-primary inline-flex items-center gap-2"
-              >
-                <Github className="w-5 h-5" />
-                Connect GitHub
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {repositories.map((repo: Repository) => (
-                <div
-                  key={repo.id}
-                  className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="p-2 bg-gray-100 rounded-lg">
-                      <GitBranch className="w-5 h-5 text-gray-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900">
-                        <Link href={`/repositories/${repo.id}`} className="hover:text-primary-600">
-                          {repo.full_name}
-                        </Link>
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        {repo.description || 'No description'}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        {repo.language && (
-                          <span className="badge badge-info">{repo.language}</span>
-                        )}
-                        {repo.is_private ? (
-                          <span className="badge badge-warning">Private</span>
-                        ) : (
-                          <span className="badge badge-success">Public</span>
-                        )}
-                      </div>
-                    </div>
+        <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <StaggerItem>
+            <Card hover animation="lift">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
+                    <GitBranch className="w-6 h-6 text-primary-600 dark:text-primary-400" />
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right text-sm text-gray-500">
-                      {repo.last_analyzed_at ? (
-                        <span>Last analyzed: {new Date(repo.last_analyzed_at).toLocaleDateString()}</span>
-                      ) : (
-                        <span>Not yet analyzed</span>
-                      )}
-                    </div>
-                    <Link
-                      href={`/repositories/${repo.id}`}
-                      className="btn btn-secondary text-sm"
-                    >
-                      View
-                    </Link>
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Repositories</p>
+                    <p className="text-2xl font-bold">{repositories.length}</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              </CardContent>
+            </Card>
+          </StaggerItem>
+          <StaggerItem>
+            <Card hover animation="lift">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    <Shield className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Avg Security</p>
+                    <p className="text-2xl font-bold">--</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </StaggerItem>
+          <StaggerItem>
+            <Card hover animation="lift">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                    <Zap className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Avg Performance</p>
+                    <p className="text-2xl font-bold">--</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </StaggerItem>
+          <StaggerItem>
+            <Card hover animation="lift">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                    <BarChart3 className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Total Analyses</p>
+                    <p className="text-2xl font-bold">--</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </StaggerItem>
+        </StaggerContainer>
+
+        {/* Repository List */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle>Connected Repositories</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <StatsCardSkeleton key={i} />
+                  ))}
+                </div>
+              ) : repositories.length === 0 ? (
+                <div className="text-center py-12">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 200 }}
+                    className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4"
+                  >
+                    <Github className="w-8 h-8 text-gray-400" />
+                  </motion.div>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No repositories connected</h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-4">
+                    Connect your GitHub repositories to start analyzing and improving your code.
+                  </p>
+                  <Button onClick={() => signIn()} className="gap-2">
+                    <Github className="w-5 h-5" />
+                    Connect GitHub
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {repositories.map((repo: Repository, index: number) => (
+                    <motion.div
+                      key={repo.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.2, delay: index * 0.05 }}
+                    >
+                      <Link href={`/repos/${repo.id}`}>
+                        <Card hover animation="scale" className="cursor-pointer">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-4">
+                                <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                                  <GitBranch className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                                </div>
+                                <div>
+                                  <h3 className="font-medium text-gray-900 dark:text-white">
+                                    {repo.full_name}
+                                  </h3>
+                                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    {repo.description || 'No description'}
+                                  </p>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    {repo.language && (
+                                      <span className="badge badge-info">{repo.language}</span>
+                                    )}
+                                    {repo.is_private ? (
+                                      <span className="badge badge-warning">Private</span>
+                                    ) : (
+                                      <span className="badge badge-success">Public</span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <div className="text-right text-sm text-gray-500 dark:text-gray-400">
+                                  {repo.last_analyzed_at ? (
+                                    <span>Last analyzed: {new Date(repo.last_analyzed_at).toLocaleDateString()}</span>
+                                  ) : (
+                                    <span>Not yet analyzed</span>
+                                  )}
+                                </div>
+                                <Button variant="ghost" size="sm">
+                                  View
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
       </main>
     </div>
   );

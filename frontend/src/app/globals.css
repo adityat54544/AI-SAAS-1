@@ -6,33 +6,94 @@
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 249, 250, 251;
   --background-end-rgb: 255, 255, 255;
+  
+  /* Light theme colors */
+  --color-background: 255 255 255;
+  --color-foreground: 0 0 0;
+  --color-card: 255 255 255;
+  --color-card-foreground: 0 0 0;
+  --color-popover: 255 255 255;
+  --color-popover-foreground: 0 0 0;
+  --color-primary: 14 165 233;
+  --color-primary-foreground: 255 255 255;
+  --color-secondary: 243 244 246;
+  --color-secondary-foreground: 0 0 0;
+  --color-muted: 243 244 246;
+  --color-muted-foreground: 107 114 128;
+  --color-accent: 243 244 246;
+  --color-accent-foreground: 0 0 0;
+  --color-destructive: 239 68 68;
+  --color-destructive-foreground: 255 255 255;
+  --color-border: 229 231 235;
+  --color-input: 229 231 235;
+  --color-ring: 14 165 233;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 17, 24, 39;
-    --background-end-rgb: 31, 41, 55;
+.dark {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 17, 24, 39;
+  --background-end-rgb: 31, 41, 55;
+  
+  /* Dark theme colors */
+  --color-background: 17 24 39;
+  --color-foreground: 255 255 255;
+  --color-card: 31 41 55;
+  --color-card-foreground: 255 255 255;
+  --color-popover: 31 41 55;
+  --color-popover-foreground: 255 255 255;
+  --color-primary: 56 189 248;
+  --color-primary-foreground: 0 0 0;
+  --color-secondary: 55 65 81;
+  --color-secondary-foreground: 255 255 255;
+  --color-muted: 55 65 81;
+  --color-muted-foreground: 156 163 175;
+  --color-accent: 55 65 81;
+  --color-accent-foreground: 255 255 255;
+  --color-destructive: 248 113 113;
+  --color-destructive-foreground: 0 0 0;
+  --color-border: 55 65 81;
+  --color-input: 55 65 81;
+  --color-ring: 56 189 248;
+}
+
+@layer base {
+  * {
+    @apply border-border;
   }
-}
-
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-    to bottom,
-    transparent,
-    rgb(var(--background-end-rgb))
-  )
-  rgb(var(--background-start-rgb));
+  
+  body {
+    @apply bg-background text-foreground;
+    color: rgb(var(--foreground-rgb));
+    background: linear-gradient(
+        to bottom,
+        transparent,
+        rgb(var(--background-end-rgb))
+      )
+      rgb(var(--background-start-rgb));
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Dark mode specific styles */
+  .dark body {
+    background: linear-gradient(
+        to bottom,
+        transparent,
+        rgb(17 24 39)
+      )
+      rgb(17 24 39);
+  }
 }
 
 @layer components {
   .btn {
-    @apply px-4 py-2 rounded-lg font-medium transition-colors;
+    @apply inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
   }
   
   .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700;
+    @apply bg-primary-600 text-white hover:bg-primary-700 focus-visible:ring-primary-500;
   }
   
   .btn-secondary {
@@ -44,34 +105,133 @@ body {
   }
   
   .card {
-    @apply bg-white rounded-lg shadow-md p-6;
+    @apply rounded-xl border border-gray-200 bg-white shadow-sm;
+  }
+  
+  .dark .card {
+    @apply border-gray-700 bg-gray-800;
   }
   
   .input {
-    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500;
+    @apply flex h-10 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  
+  .dark .input {
+    @apply border-gray-600 bg-gray-800 text-gray-100 placeholder:text-gray-400;
   }
   
   .label {
-    @apply block text-sm font-medium text-gray-700 mb-1;
+    @apply text-sm font-medium text-gray-700 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70;
+  }
+  
+  .dark .label {
+    @apply text-gray-300;
   }
   
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors;
   }
   
   .badge-success {
     @apply bg-green-100 text-green-800;
   }
   
+  .dark .badge-success {
+    @apply bg-green-900/30 text-green-400;
+  }
+  
   .badge-warning {
     @apply bg-yellow-100 text-yellow-800;
+  }
+  
+  .dark .badge-warning {
+    @apply bg-yellow-900/30 text-yellow-400;
   }
   
   .badge-danger {
     @apply bg-red-100 text-red-800;
   }
   
+  .dark .badge-danger {
+    @apply bg-red-900/30 text-red-400;
+  }
+  
   .badge-info {
     @apply bg-blue-100 text-blue-800;
+  }
+  
+  .dark .badge-info {
+    @apply bg-blue-900/30 text-blue-400;
+  }
+}
+
+/* Utility classes for colors */
+@layer utilities {
+  .bg-background {
+    background-color: rgb(var(--color-background));
+  }
+  
+  .bg-foreground {
+    background-color: rgb(var(--color-foreground));
+  }
+  
+  .text-foreground {
+    color: rgb(var(--color-foreground));
+  }
+  
+  .text-muted-foreground {
+    color: rgb(var(--color-muted-foreground));
+  }
+  
+  .border-border {
+    border-color: rgb(var(--color-border));
+  }
+  
+  .ring-ring {
+    --tw-ring-color: rgb(var(--color-ring));
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(156 163 175);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(107 114 128);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgb(75 85 99);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgb(107 114 128);
+}
+
+/* Focus visible for accessibility */
+:focus-visible {
+  outline: 2px solid rgb(var(--color-primary));
+  outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
