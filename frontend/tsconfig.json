@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
+    "baseUrl": ".",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
@@ -13,16 +13,32 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    },
     "plugins": [
       {
         "name": "next"
       }
-    ]
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules", "src/test/**/*", "**/*.test.ts", "**/*.test.tsx", "vitest.config.ts", "coverage/**/*"]
 }
+</parameter>
+<task_progress>
+- [x] Read README.md and core documentation
+- [x] Analyzed backend main.py and config.py
+- [x] Analyzed all API routers
+- [x] Analyzed services
+- [x] Analyzed AI integration
+- [x] Analyzed database schema
+- [x] Analyzed frontend structure
+- [x] Analyzed workers system
+- [x] Analyzed authentication system
+- [x] Fix tsconfig.json - add baseUrl
+- [ ] Commit and push to GitHub
+- [ ] Compile comprehensive analysis report
+</task_progress>
+</invoke>
+</minimax:tool_call>
