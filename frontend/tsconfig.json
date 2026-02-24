@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -19,11 +23,25 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "src/test/**/*", "**/*.test.ts", "**/*.test.tsx", "vitest.config.ts", "coverage/**/*"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "src/test/**/*",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "vitest.config.ts",
+    "coverage/**/*"
+  ]
 }
 </parameter>
 <task_progress>
@@ -36,9 +54,7 @@
 - [x] Analyzed frontend structure
 - [x] Analyzed workers system
 - [x] Analyzed authentication system
-- [x] Fix tsconfig.json - add baseUrl
+- [x] Fix tsconfig.json syntax error (hidden characters)
 - [ ] Commit and push to GitHub
-- [ ] Compile comprehensive analysis report
 </task_progress>
 </invoke>
-</minimax:tool_call>
