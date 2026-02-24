@@ -21,7 +21,7 @@ jobs:
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       - name: Document Required Metrics
         run: |
@@ -73,7 +73,7 @@ jobs:
           cat metrics_report.md
       
       - name: Upload metrics documentation
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: metrics-documentation
           path: metrics_report.md
@@ -84,7 +84,7 @@ jobs:
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       - name: Check metrics endpoint implementation
         run: |
@@ -118,7 +118,7 @@ jobs:
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       - name: Validate Grafana dashboard JSON
         run: |
