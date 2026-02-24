@@ -5,14 +5,7 @@ const nextConfig = {
   // Only use standalone output for Docker/Coolify deployments, NOT for Vercel
   ...(process.env.VERCEL !== '1' && { output: 'standalone' }),
   
-  // Webpack configuration for path aliases
-  webpack: (config, { isServer }) => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@': require('path').resolve(__dirname, 'src'),
-    };
-    return config;
-  },
+  // Note: @ path alias is configured in tsconfig.json - no custom webpack needed
   
   // Environment variables exposed to the browser
   env: {
