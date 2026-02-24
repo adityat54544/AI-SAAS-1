@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "services": {
+    "frontend": {
+      "directory": "frontend",
+      "build": {
+        "command": "npm run build"
+      },
+      "deploy": {
+        "command": "npm start",
+        "port": 3000,
+        "healthcheck": {
+          "path": "/",
+          "port": 3000
+        }
+      },
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  }
+}
